@@ -40,7 +40,7 @@ int main() {
         scanf("%s",&buffer[0]);
         send(clientSocket, buffer, strlen(buffer), 0);
 
-        if (strcmp(buffer, ":exit") == 0) {
+        if (strcmp(buffer, ":disconnect") == 0) {
             printf("[-]Disconnect from server!\n");
             exit(1);
         }

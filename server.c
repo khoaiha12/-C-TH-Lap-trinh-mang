@@ -12,6 +12,11 @@
 
 #define PORT 4444
 
+typedef struct player {
+    char ip_addr[20];
+    int port;
+    char name[20];
+}player;
 
 void sig_chld(int signo){
 	pid_t pid;
@@ -25,6 +30,8 @@ void sig_chld(int signo){
 int main() {
     int sockfd, ret;
     struct sockaddr_in serverAddr;
+    player plList[10];
+    int playerCount = 0;
 
     int newSocket;
     struct sockaddr_in newAddr;
@@ -69,16 +76,30 @@ int main() {
             exit(1);
         }
         printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
-
+        // plList[playerCount].ip_addr = newAddr.sin_addr;
+        strcpy(plList[playerCount].ip_addr, inet_ntoa(newAddr.sin_addr));
+        plList[playerCount].port = ntohs(newAddr.sin_port);
+        printf("CLient %d : %s:%d\n", playerCount, plList[playerCount].ip_addr, plList[playerCount].port);
+        playerCount++;
+        
         if ((childpid = fork()) == 0) {
             close(sockfd);
         int n;
             while(recv(newSocket, buffer, 1024, 0) > 0) {
-                if(strcmp(buffer, ":disconnect") == 0) {
-                    printf("[-]Disconnect from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
-                    bzero(buffer, sizeof(buffer));
-                    break;
-                } else {
+                // if(strcmp(buffer, ":disconnect") == 0) {
+                //     printf("[-]Disconnect from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+                //     bzero(buffer, sizeof(buffer));
+                //     break;
+                // } 
+                // else 
+                    if (strcmp(buffer, ":list") == 0) {
+                    int i;
+                    for (i=0; i<playerCount; i++) {
+                        printf("LIST: Client %d : %s", playerCount, plList[playerCount].ip_addr);
+                        // send(newSocket, plList[playerCount].ip_addr, strlen(plList[playerCount].ip_addr), 0);
+                    }
+                }
+                else {
                     printf("Client:  %s\n", buffer);
                     send(newSocket, buffer, strlen(buffer), 0);
                     bzero(buffer, sizeof(buffer));
