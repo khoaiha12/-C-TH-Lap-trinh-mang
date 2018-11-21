@@ -1,13 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <sys/socket.h>
+#include <string.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
+#include <sys/wait.h>
+#include <errno.h>
 #include <arpa/inet.h>
 
 #define PORT 4444
+
+
+void sig_chld(int signo){
+	pid_t pid;
+	int stat;
+	
+	/* Wait the child process  terminate */
+	while((pid = waitpid(-1, &stat, WNOHANG))>0)
+		printf("\nChild %d terminated\n",pid);
+}
 
 int main() {
     int sockfd, ret;
@@ -47,6 +60,9 @@ int main() {
         printf("[-]Error in binding.\n");
     }
 
+    /* Establish a signal handler to catch SIGCHLD */
+	signal(SIGCHLD, sig_chld);
+
     while(1) {
         newSocket = accept(sockfd, (struct sockaddr*)&newAddr, &addr_size);
         if (newSocket < 0) {
@@ -56,20 +72,22 @@ int main() {
 
         if ((childpid = fork()) == 0) {
             close(sockfd);
-
-            while(1) {
-                recv(newSocket, buffer, 1024, 0);
-                if(strcmp(buffer, ":exit") == 0) {
+        int n;
+            while(recv(newSocket, buffer, 1024, 0) > 0) {
+                if(strcmp(buffer, ":disconnect") == 0) {
                     printf("[-]Disconnect from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+                    bzero(buffer, sizeof(buffer));
                     break;
                 } else {
                     printf("Client:  %s\n", buffer);
                     send(newSocket, buffer, strlen(buffer), 0);
                     bzero(buffer, sizeof(buffer));
                 }
+
             }
         }
     }
+    
     close(newSocket);
     
     return 0;
