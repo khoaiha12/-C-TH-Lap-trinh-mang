@@ -38,17 +38,21 @@ int main() {
     while(1) {
         printf("Client: \t");
         scanf("%s",&buffer[0]);
-        send(clientSocket, buffer, strlen(buffer), 0);
+        printf("Send buff: %s, lenght: %ld\n", buffer, strlen(buffer));
+        send(clientSocket, buffer, strlen(buffer)+1, 0);
 
         if (strcmp(buffer, ":disconnect") == 0) {
             printf("[-]Disconnect from server!\n");
+            bzero(buffer, sizeof(buffer));
             exit(1);
         }
 
-        if(recv(clientSocket, buffer, 1024, 0) < 0) {
-            printf("[-]Error in receiving data.\n");
-        } else {
-            printf("Server: \t%s\n", buffer);
+        if (strcmp(buffer, ":list") == 0) {
+            while(recv(clientSocket, buffer, 1024, 0) > 0) {
+                buffer[strlen(buffer)-1] = '\0';
+                printf("Server: \t%s\n", buffer);
+                bzero(buffer, sizeof(buffer));
+            }
         }
     }
 

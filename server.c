@@ -27,6 +27,7 @@ void sig_chld(int signo){
 		printf("\nChild %d terminated\n",pid);
 }
 
+
 int main() {
     int sockfd, ret;
     struct sockaddr_in serverAddr;
@@ -79,25 +80,37 @@ int main() {
         // plList[playerCount].ip_addr = newAddr.sin_addr;
         strcpy(plList[playerCount].ip_addr, inet_ntoa(newAddr.sin_addr));
         plList[playerCount].port = ntohs(newAddr.sin_port);
-        printf("CLient %d : %s:%d\n", playerCount, plList[playerCount].ip_addr, plList[playerCount].port);
+        // printf("CLient %d : %s:%d\n", playerCount, plList[playerCount].ip_addr, plList[playerCount].port);
         playerCount++;
         
         if ((childpid = fork()) == 0) {
             close(sockfd);
         int n;
             while(recv(newSocket, buffer, 1024, 0) > 0) {
-                // if(strcmp(buffer, ":disconnect") == 0) {
-                //     printf("[-]Disconnect from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
-                //     bzero(buffer, sizeof(buffer));
-                //     break;
-                // } 
-                // else 
-                    if (strcmp(buffer, ":list") == 0) {
+                // buffer[strlen(buffer)-1] = '\0';
+                if(strcmp(buffer, ":disconnect") == 0) {
+                    printf("[-]Disconnect from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+                    bzero(buffer, sizeof(buffer));
+                    break;
+                } 
+                else 
+                if (strcmp(buffer, ":list") == 0) {
                     int i;
+                    char sendBuf[1000];
+                    char tmp[100];
                     for (i=0; i<playerCount; i++) {
-                        printf("LIST: Client %d : %s", playerCount, plList[playerCount].ip_addr);
-                        // send(newSocket, plList[playerCount].ip_addr, strlen(plList[playerCount].ip_addr), 0);
+                        printf("LIST: Client %d : %s:%d\n", i, plList[i].ip_addr, plList[i].port);
+                        strcat(sendBuf,plList[i].ip_addr);
+                        strcat(sendBuf, ":");
+                        sprintf(tmp, "%d", plList[i].port);
+                        strcat(sendBuf,tmp);
+                        // printf("SendBuff: %s\n",sendBuf);
+                        send(newSocket, sendBuf, strlen(sendBuf), 0);
+                        bzero(tmp, sizeof(tmp));
+                        bzero(sendBuf, sizeof(sendBuf));
                     }
+                    send(newSocket, "", 0, 0);
+
                 }
                 else {
                     printf("Client:  %s\n", buffer);
