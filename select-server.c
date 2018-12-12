@@ -6,6 +6,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 // For ..
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/select.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -18,14 +21,97 @@ typedef struct player {
     struct player *prev;
 }player;
 
+void printPlayerList(player *list) {
+    player *currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+        // printf("LINKLIST: IP: %s:%d. Name: %s\n",currentNode->ip_addr, currentNode->port , currentNode->name);
+    }
+    // free(currentNode);
+
+}
+
+player* addNewPlayer(player *list, char *ip_addr, int port, char *name) {
+    player *currentNode = (player *)malloc(sizeof(player));
+    currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+    }
+
+    if ( ip_addr != NULL && name != NULL) {
+        player *newPl;
+        newPl = (player *)malloc(sizeof(player));
+        strcpy(newPl->ip_addr, ip_addr);
+        newPl->port = port;
+        strcpy(newPl->name, name);
+        currentNode->next = newPl;
+        newPl->prev=currentNode;
+        // printf("Addmode");
+        // printPlayerList(newPl);
+    }
+
+      return list;
+
+}
+
+void setPlayerName(player *list, char *ip_addr, int port, char *name) {
+    player *currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+        if (strcmp(ip_addr,currentNode->ip_addr) == 0 && port == currentNode->port) {
+            strcpy(currentNode->name,name);
+        }
+    }
+
+}
+
+int countPlayer(player *list) {
+    player *currentNode = list;
+    int i = 0;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        i++;
+        currentNode = currentNode->next;
+    }
+    return i;
+}
+
+char* playerInfo(player* list, int index) {
+    player *currentNode = list;
+    int i = 0;
+    for(i=0; i<index; i++) {
+        currentNode = currentNode->next;
+        // printf("Index=: %d--LIST: Client %d : %s:%d. Name: %s\n",index, i, currentNode->ip_addr, currentNode->port, currentNode->name);
+    }
+    char* info;
+    info = ( char *)malloc(100);
+    char tmp[100];
+    bzero(info, sizeof(info));
+    // printf("LIST: Client %d : %s:%d. Name: %s\n", idx, plList[idx].ip_addr, plList[idx].port, plList[idx].name);
+    strcat(info,currentNode->ip_addr);
+    strcat(info, ":");
+    sprintf(tmp, "%d", currentNode->port);
+    strcat(info,tmp);
+    strcat(info, ":");
+    strcat(info, currentNode->name);
+    info[strlen(info)] = '\0';
+    bzero(tmp, sizeof(tmp));
+    // printf("Info: %s\n", info);
+    return info;
+}
+
 int main()
 {   
+    printf("Waiting client!\n");
     //Playerlist
-    player plList[10];
-    int playerCount = 0;
+    // player plList[10];
+    // int playerCount = 0;
+    player *list = (player *)malloc(sizeof(player));
 
-
-    // Tao server socket
+    // Tao server socket    
     int serverSocket =  socket(PF_INET,SOCK_STREAM,0);
     if (serverSocket == -1)
     {
@@ -50,14 +136,14 @@ int main()
 	check = bind(serverSocket,(struct sockaddr*)&serverAddress,len);
 	if (check == -1)
         {
-            perror("BIND");
+            perror("BIND ERROR!");
             exit(0);
         }
         //Gio ta cho server lang nghe ket noi
         check = listen(serverSocket,10);
 	if (check == -1)
 	{
-		perror("Listen");
+		perror("Listen ERROR!");
 		exit(1);
 	}
         // Mỗi client kết nối đến server, nếu được chấp nhận thì server sẽ tạo ra một socket để giao tiếp với client đó đến khi 1 trong 2 bên đóng.
@@ -104,13 +190,17 @@ int main()
                         {                          
                             int newCon = accept(serverSocket,(struct sockaddr*)&clientAddress,&len);
                             printf("Connection accepted \n");
-                            strcpy(plList[playerCount].ip_addr, inet_ntoa(clientAddress.sin_addr));
-                            plList[playerCount].port = ntohs(clientAddress.sin_port);
+                            // strcpy(plList[playerCount].ip_addr, inet_ntoa(clientAddress.sin_addr));
+                            // plList[playerCount].port = ntohs(clientAddress.sin_port);
                             // printf("CLient %d : %s:%d\n", playerCount, plList[playerCount].ip_addr, plList[playerCount].port);
-                            playerCount++;
+                            // playerCount++;
+                            // char message[100];
+                            // int nrecv = recv(i,message,100,0);
+                            list = addNewPlayer(list,inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), "\0");
 
-                          FD_SET(newCon,&masterfds);
-                          if (newCon > max_fd ) max_fd = newCon;
+                            FD_SET(newCon,&masterfds);
+                            if (newCon > max_fd ) max_fd = newCon;
+                            
                         }
                         else
                         {
@@ -136,43 +226,34 @@ int main()
                                         //     perror("SEND");
                                         //     close_fd = 1;
                                         // }
-                                        if(strcmp(message, ":disconnect") == 0) {
+                                        if(strcmp(message, "/disconnect") == 0) {
+                                            printPlayerList(list);
                                             printf("[-]Disconnect from %s:%d\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
                                             bzero(message, sizeof(message));
                                             break;
                                         } 
                                         else 
-                                        if (strcmp(message, ":list") == 0) {
-                                            int idx;
-                                            char sendBuf[1000];
-                                            bzero(sendBuf, sizeof(sendBuf));
-                                            char tmp[100];
-                                            for (idx=0; idx<playerCount; idx++) {
-                                                printf("LIST: Client %d : %s:%d. Name: %s\n", idx, plList[idx].ip_addr, plList[idx].port, plList[idx].name);
-                                                strcat(sendBuf,plList[idx].ip_addr);
-                                                strcat(sendBuf, ":");
-                                                sprintf(tmp, "%d", plList[idx].port);
-                                                strcat(sendBuf,tmp);
-                                                strcat(sendBuf, "\t");
-                                                strcat(sendBuf, plList[idx].name);
-                                                send(i,sendBuf,strlen(sendBuf),0);
-                                                // printf("SendBuff: %s\n",sendBuf); }
-                                                bzero(tmp, sizeof(tmp));
-                                                bzero(sendBuf, sizeof(sendBuf));
+                                        if (strcmp(message, "/list") == 0) {
+                                            printPlayerList(list);
+                                            int idx = 0;
+                                            int n = countPlayer(list);
+                                            printf("N = %d\n",n);
+                                            // char sendBuf[1000];
+                                            // bzero(sendBuf, sizeof(sendBuf));
+                                            for (idx = 1; idx <= n; idx++) {
+                                                send(i,playerInfo(list, idx), strlen(playerInfo(list, idx)),0);
+                                                printf("Sent Buffer: %s, lenght = %ld\n", playerInfo(list, idx), strlen(playerInfo(list, idx)));
                                             }
-                                            strcpy(tmp, "endlist");
+                                            char tmp[100];
+                                            strcpy(tmp, "/endlist");
+                                            tmp[strlen(tmp)] = '\0';
                                             send(i, tmp, sizeof(tmp), 0);
                                             bzero(tmp, sizeof(tmp));
                                         }
-                                        else if (strcmp(message, ":setname") == 0) {
+                                        else if (strcmp(message, "/setname") == 0) {
                                             recv(i, message, 1024, 0);
                                             printf("IP: %s:%d. Name: %s\n",inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port) , message);
-                                            int i;
-                                            for(i = 0; i<playerCount; i++) {
-                                                if(strcmp(inet_ntoa(clientAddress.sin_addr),plList[i].ip_addr) == 0 && ntohs(clientAddress.sin_port) == plList[i].port) {
-                                                    strcpy(plList[i].name, message);
-                                                }
-                                            }
+                                            setPlayerName(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), message);
                                             bzero(message, sizeof(message));
 
                                         }

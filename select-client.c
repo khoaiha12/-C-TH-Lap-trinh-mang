@@ -47,7 +47,7 @@ int main()
     char message[100];
     // strcpy(message,"Hi server");
 
-    strcpy(message, ":setname");
+    strcpy(message, "/setname");
     send(clientSocket, message, strlen(message)+1, 0);
     printf("Choose a name: ");
     char name[20];
@@ -70,15 +70,15 @@ int main()
     }
 
     printf("Send Buff: %s\n",message);
-        if (strcmp(message, ":disconnect") == 0) {
+        if (strcmp(message, "/disconnect") == 0) {
             printf("[-]Disconnect from server!\n");
             bzero(message, sizeof(message));
             exit(1);
         }
 
-        if (strcmp(message, ":list") == 0) {
+        if (strcmp(message, "/list") == 0) {
             while(recv(clientSocket,message,100,0) > 0) {
-                if (strcmp(message, "endlist") == 0) break;
+                if (strcmp(message, "/endlist") == 0) break;
                 printf("Player List: \t%s\n", message);
                 bzero(message, sizeof(message));
             }
