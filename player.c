@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 typedef struct player1 {
+    int number;
     char ip_addr[20];
     int port;
     char name[20];
@@ -16,7 +17,7 @@ void printPlayerList(player *list) {
     while (1) {
         if(currentNode->next == NULL) break;
         currentNode = currentNode->next;
-        // printf("LINKLIST: IP: %s:%d. Name: %s\n",currentNode->ip_addr, currentNode->port , currentNode->name);
+        printf("LIST: Number:%d  IP: %s:%d. Name: %s\n",currentNode->number, currentNode->ip_addr, currentNode->port , currentNode->name);
     }
     // free(currentNode);
 
@@ -46,13 +47,14 @@ player* addNewPlayer(player *list, char *ip_addr, int port, char *name) {
 
 }
 
-void setPlayerName(player *list, char *ip_addr, int port, char *name) {
+void setPlayerName(player *list, char *ip_addr, int port, char *name, int number) {
     player *currentNode = list;
     while (1) {
         if(currentNode->next == NULL) break;
         currentNode = currentNode->next;
         if (strcmp(ip_addr,currentNode->ip_addr) == 0 && port == currentNode->port) {
             strcpy(currentNode->name,name);
+            currentNode->number = number;
         }
     }
 
@@ -91,4 +93,29 @@ char* playerInfo(player* list, int index) {
     bzero(tmp, sizeof(tmp));
     // printf("Info: %s\n", info);
     return info;
+}
+player* playerDisconnect(player *list, int number) {
+    player *currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+        if (currentNode->number == number) {
+            if(currentNode->next == NULL) {
+                player *prevNode = currentNode->prev;
+                prevNode->next = NULL;
+                currentNode->prev = NULL;
+            } else {
+                player *prevNode = currentNode->prev;
+                player *nextNode = currentNode->next;
+                prevNode->next = nextNode;
+                nextNode->prev = prevNode;
+                currentNode->prev = NULL;
+                currentNode->next = NULL;
+            }
+
+            free(currentNode);
+
+        }
+    }
+    return list;
 }

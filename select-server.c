@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "player.h"
 
@@ -103,7 +104,7 @@ int main()
                         {                          
                             int newCon = accept(serverSocket,(struct sockaddr*)&clientAddress,&len);
                             printf("Connection accepted \n");
-                            list = addNewPlayer(list,inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), "\0");
+                            list = addNewPlayer(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), "\0");
                             FD_SET(newCon,&masterfds);
                             if (newCon > max_fd ) max_fd = newCon;
                             
@@ -113,7 +114,7 @@ int main()
                             char message[100];
                             printf("Receive data in socket %d\n",i);
                             int nrecv = recv(i,message,100,0);
-                            // printf("%s",message);
+                            // printf("%s\n",message);
                             if (nrecv == -1)
                             {
                                 printf("In socket %d\n",i);
@@ -123,25 +124,27 @@ int main()
                             else
                             if (nrecv != 0)
                                     {
-                                        int status = 0;
+                                        int isCommand = 0;
                                         message[nrecv] = 0;
                                         if(strcmp(message, "/disconnect") == 0) {
-                                            status = 1;
+                                            isCommand = 1;
                                             printf("[-]Disconnect from %s:%d\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
+                                            list = playerDisconnect(list, i);
                                             bzero(message, sizeof(message));
                                             break;
                                         }  
                                         if (strcmp(message, "/list") == 0) {
-                                            status = 1;
+                                            isCommand = 1;
+                                            // printf("Go tolist function\n");
                                             printPlayerList(list);
                                             int idx = 0;
                                             int n = countPlayer(list);
                                             char sendBuf[1000];
-                                            // bzero(sendBuf, sizeof(sendBuf));
+                                            bzero(sendBuf, sizeof(sendBuf));
                                             for (idx = 1; idx <= n; idx++) {
                                                 bzero(sendBuf,sizeof(sendBuf));
                                                 strcpy(sendBuf, playerInfo(list, idx));
-                                                send(i,sendBuf, strlen(sendBuf),0);
+                                                send(i,sendBuf, 100,0);
                                                 // printf("Sent Buffer: %s, lenght = %ld\n", sendBuf, strlen(sendBuf));
                                                 bzero(sendBuf,sizeof(sendBuf));
                                             }
@@ -152,14 +155,14 @@ int main()
                                             bzero(tmp, sizeof(tmp));
                                         }
                                         if (strcmp(message, "/setname") == 0) {
-                                            status = 1;
+                                            isCommand = 1;
                                             recv(i, message, 1024, 0);
                                             printf("IP: %s:%d. Name: %s\n",inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port) , message);
-                                            setPlayerName(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), message);
+                                            setPlayerName(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), message, i);
                                             bzero(message, sizeof(message));
 
                                         }
-                                        if(status == 0) {
+                                        if(isCommand == 0) {
                                             printf("Client:  %s\n", message);
                                             send(i,message,strlen(message),0);
                                             bzero(message, sizeof(message));
