@@ -13,95 +13,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct player {
-    char ip_addr[20];
-    int port;
-    char name[20];
-    struct player *next;
-    struct player *prev;
-}player;
+#include "player.h"
 
-void printPlayerList(player *list) {
-    player *currentNode = list;
-    while (1) {
-        if(currentNode->next == NULL) break;
-        currentNode = currentNode->next;
-        // printf("LINKLIST: IP: %s:%d. Name: %s\n",currentNode->ip_addr, currentNode->port , currentNode->name);
-    }
-    // free(currentNode);
-
-}
-
-player* addNewPlayer(player *list, char *ip_addr, int port, char *name) {
-    player *currentNode = (player *)malloc(sizeof(player));
-    currentNode = list;
-    while (1) {
-        if(currentNode->next == NULL) break;
-        currentNode = currentNode->next;
-    }
-
-    if ( ip_addr != NULL && name != NULL) {
-        player *newPl;
-        newPl = (player *)malloc(sizeof(player));
-        strcpy(newPl->ip_addr, ip_addr);
-        newPl->port = port;
-        strcpy(newPl->name, name);
-        currentNode->next = newPl;
-        newPl->prev=currentNode;
-        // printf("Addmode");
-        // printPlayerList(newPl);
-    }
-
-      return list;
-
-}
-
-void setPlayerName(player *list, char *ip_addr, int port, char *name) {
-    player *currentNode = list;
-    while (1) {
-        if(currentNode->next == NULL) break;
-        currentNode = currentNode->next;
-        if (strcmp(ip_addr,currentNode->ip_addr) == 0 && port == currentNode->port) {
-            strcpy(currentNode->name,name);
-        }
-    }
-
-}
-
-int countPlayer(player *list) {
-    player *currentNode = list;
-    int i = 0;
-    while (1) {
-        if(currentNode->next == NULL) break;
-        i++;
-        currentNode = currentNode->next;
-    }
-    return i;
-}
-
-char* playerInfo(player* list, int index) {
-    player *currentNode = list;
-    int i = 0;
-    for(i=0; i<index; i++) {
-        currentNode = currentNode->next;
-        // printf("Index=: %d--LIST: Client %d : %s:%d. Name: %s\n",index, i, currentNode->ip_addr, currentNode->port, currentNode->name);
-    }
-    char* info;
-    info = ( char *)malloc(100);
-    char tmp[100];
-    bzero(info, sizeof(info));
-    // printf("LIST: Client %d : %s:%d. Name: %s\n", idx, plList[idx].ip_addr, plList[idx].port, plList[idx].name);
-    strcat(info,currentNode->ip_addr);
-    strcat(info, ":");
-    sprintf(tmp, "%d", currentNode->port);
-    strcat(info,tmp);
-    strcat(info, ":");
-    strcat(info, currentNode->name);
-    info[strlen(info)] = '\0';
-    bzero(tmp, sizeof(tmp));
-    // printf("Info: %s\n", info);
-    return info;
-}
 
 int main()
 {   
@@ -190,14 +103,7 @@ int main()
                         {                          
                             int newCon = accept(serverSocket,(struct sockaddr*)&clientAddress,&len);
                             printf("Connection accepted \n");
-                            // strcpy(plList[playerCount].ip_addr, inet_ntoa(clientAddress.sin_addr));
-                            // plList[playerCount].port = ntohs(clientAddress.sin_port);
-                            // printf("CLient %d : %s:%d\n", playerCount, plList[playerCount].ip_addr, plList[playerCount].port);
-                            // playerCount++;
-                            // char message[100];
-                            // int nrecv = recv(i,message,100,0);
                             list = addNewPlayer(list,inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), "\0");
-
                             FD_SET(newCon,&masterfds);
                             if (newCon > max_fd ) max_fd = newCon;
                             
@@ -217,47 +123,43 @@ int main()
                             else
                             if (nrecv != 0)
                                     {
+                                        int status = 0;
                                         message[nrecv] = 0;
-                                        // printf("Client say : %s\n",message);
-                                        // int nsent = send(i,message,strlen(message),0);
-                                        // if (nsent == -1)
-                                        // {
-                                        //     printf("In socket %d\n",i);
-                                        //     perror("SEND");
-                                        //     close_fd = 1;
-                                        // }
                                         if(strcmp(message, "/disconnect") == 0) {
-                                            printPlayerList(list);
+                                            status = 1;
                                             printf("[-]Disconnect from %s:%d\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
                                             bzero(message, sizeof(message));
                                             break;
-                                        } 
-                                        else 
+                                        }  
                                         if (strcmp(message, "/list") == 0) {
+                                            status = 1;
                                             printPlayerList(list);
                                             int idx = 0;
                                             int n = countPlayer(list);
-                                            printf("N = %d\n",n);
-                                            // char sendBuf[1000];
+                                            char sendBuf[1000];
                                             // bzero(sendBuf, sizeof(sendBuf));
                                             for (idx = 1; idx <= n; idx++) {
-                                                send(i,playerInfo(list, idx), strlen(playerInfo(list, idx)),0);
-                                                printf("Sent Buffer: %s, lenght = %ld\n", playerInfo(list, idx), strlen(playerInfo(list, idx)));
+                                                bzero(sendBuf,sizeof(sendBuf));
+                                                strcpy(sendBuf, playerInfo(list, idx));
+                                                send(i,sendBuf, strlen(sendBuf),0);
+                                                // printf("Sent Buffer: %s, lenght = %ld\n", sendBuf, strlen(sendBuf));
+                                                bzero(sendBuf,sizeof(sendBuf));
                                             }
                                             char tmp[100];
                                             strcpy(tmp, "/endlist");
-                                            tmp[strlen(tmp)] = '\0';
+                                            // tmp[strlen(tmp)] = '\0';
                                             send(i, tmp, sizeof(tmp), 0);
                                             bzero(tmp, sizeof(tmp));
                                         }
-                                        else if (strcmp(message, "/setname") == 0) {
+                                        if (strcmp(message, "/setname") == 0) {
+                                            status = 1;
                                             recv(i, message, 1024, 0);
                                             printf("IP: %s:%d. Name: %s\n",inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port) , message);
                                             setPlayerName(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), message);
                                             bzero(message, sizeof(message));
 
                                         }
-                                        else {
+                                        if(status == 0) {
                                             printf("Client:  %s\n", message);
                                             send(i,message,strlen(message),0);
                                             bzero(message, sizeof(message));

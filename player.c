@@ -1,0 +1,94 @@
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+typedef struct player1 {
+    char ip_addr[20];
+    int port;
+    char name[20];
+    struct player *next;
+    struct player *prev;
+}player;
+
+
+void printPlayerList(player *list) {
+    player *currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+        // printf("LINKLIST: IP: %s:%d. Name: %s\n",currentNode->ip_addr, currentNode->port , currentNode->name);
+    }
+    // free(currentNode);
+
+}
+
+player* addNewPlayer(player *list, char *ip_addr, int port, char *name) {
+    player *currentNode = (player *)malloc(sizeof(player));
+    currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+    }
+
+    if ( ip_addr != NULL && name != NULL) {
+        player *newPl;
+        newPl = (player *)malloc(sizeof(player));
+        strcpy(newPl->ip_addr, ip_addr);
+        newPl->port = port;
+        strcpy(newPl->name, name);
+        currentNode->next = newPl;
+        newPl->prev=currentNode;
+        // printf("Addmode");
+        // printPlayerList(newPl);
+    }
+
+      return list;
+
+}
+
+void setPlayerName(player *list, char *ip_addr, int port, char *name) {
+    player *currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+        if (strcmp(ip_addr,currentNode->ip_addr) == 0 && port == currentNode->port) {
+            strcpy(currentNode->name,name);
+        }
+    }
+
+}
+
+int countPlayer(player *list) {
+    player *currentNode = list;
+    int i = 0;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        i++;
+        currentNode = currentNode->next;
+    }
+    return i;
+}
+
+char* playerInfo(player* list, int index) {
+    player *currentNode = list;
+    int i = 0;
+    for(i=0; i<index; i++) {
+        currentNode = currentNode->next;
+        // printf("Index=: %d--LIST: Client %d : %s:%d. Name: %s\n",index, i, currentNode->ip_addr, currentNode->port, currentNode->name);
+    }
+    char* info;
+    info = ( char *)malloc(100);
+    char tmp[100];
+    bzero(info, sizeof(info));
+    // printf("LIST: Client %d : %s:%d. Name: %s\n", idx, plList[idx].ip_addr, plList[idx].port, plList[idx].name);
+    strcat(info,currentNode->ip_addr);
+    strcat(info, ":");
+    sprintf(tmp, "%d", currentNode->port);
+    strcat(info,tmp);
+    strcat(info, ":");
+    strcat(info, currentNode->name);
+    info[strlen(info)] = '\0';
+    bzero(tmp, sizeof(tmp));
+    // printf("Info: %s\n", info);
+    return info;
+}
