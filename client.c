@@ -1,60 +1,83 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define PORT 4444
+#include <stdio.h>
+#include <string.h>
+#include <gtk/gtk.h>
 
-int main() {
-    int clientSocket, ret;
-    struct sockaddr_in serverAddr;
-    char buffer[1024];
+#include "interface.h"
+#include "client_params.h"
 
-    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (clientSocket < 0) {
-        printf("[-]Error in connection.\n");
-        exit(1);
+int main (int argc, char *argv[])
+{	
+	gtk_init (&argc, &argv);
+	init_home_window();
+
+    int clientSocket = socket(PF_INET,SOCK_STREAM,0);
+
+    if (clientSocket == -1)
+    {
+        perror("CREATE_SOCKET");
+        exit(0); // Thoat 
     }
 
-    printf("[+]Client Socket is created!\n");
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET; // Address family
+    serverAddress.sin_port = htons(5000); // Port
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-    memset(&serverAddr, '\0', sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT);
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); //server address
-    
-    ret = connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+    socklen_t len = sizeof (struct sockaddr_in);
 
-    if (ret < 0) {
-        printf("[-]Error in connection.\n");
-        exit(1);
+    int check = connect(clientSocket,(struct sockaddr*)&serverAddress,len);
+    if (check == -1)
+    {
+        perror("CONNECT");
+        exit(0);
+    }    
+
+    char message[100];
+
+    strcpy(message, "/setname");
+    send(clientSocket, message, strlen(message)+1, 0);
+    printf("Choose a name: ");
+    char name[20];
+    scanf("%s", name);
+    send(clientSocket, name, strlen(name)+1, 0);
+    printf("\n");
+    bzero(message, sizeof(message));
+
+    do
+    {
+
+    printf("Message : ");
+    scanf("%s",message);
+    int n_sent = send(clientSocket,message,strlen(message),0);
+    if (n_sent == -1) // Gui loi
+    {
+        perror("SEND");
+        exit(0);
     }
-    printf("[+]Connected to Server");
 
-    while(1) {
-        printf("Client: \t");
-        scanf("%s",&buffer[0]);
-        printf("Send buff: %s, lenght: %ld\n", buffer, strlen(buffer));
-        send(clientSocket, buffer, strlen(buffer)+1, 0);
-
-        if (strcmp(buffer, ":disconnect") == 0) {
+    printf("Send Buff: %s\n",message);
+        if (strcmp(message, "/disconnect") == 0) {
             printf("[-]Disconnect from server!\n");
-            bzero(buffer, sizeof(buffer));
+            bzero(message, sizeof(message));
             exit(1);
         }
 
-        if (strcmp(buffer, ":list") == 0) {
-            while(recv(clientSocket, buffer, 1024, 0) > 0) {
-                buffer[strlen(buffer)-1] = '\0';
-                printf("Server: \t%s\n", buffer);
-                bzero(buffer, sizeof(buffer));
+        if (strcmp(message, "/list") == 0) {
+            while(recv(clientSocket,message,100,0) > 0) {
+                if (strcmp(message, "/endlist") == 0) break;
+                printf("Player List: \t%s\n", message);
+                bzero(message, sizeof(message));
             }
+            bzero(message, sizeof(message));
         }
-    }
+    
+    }while (1);
 
-    return 0;
+	gtk_main();
+	return 0;		
 }
