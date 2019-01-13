@@ -1,4 +1,3 @@
-
 //Các file header
 //For socket()
 #include <sys/types.h>
@@ -84,9 +83,28 @@ int main()
             }
             bzero(message, sizeof(message));
         }
-    
+
+        if (strcmp(message, "/enterRoom") == 0) {
+            bzero(message, sizeof(message));
+            int roomNumber;
+            printf("RoomNumber = ");
+            scanf("%d",&roomNumber);
+            sprintf(message, "%d",roomNumber);
+            printf("\nSend ms :%s\n",message);
+            send(clientSocket,message,strlen(message),0);
+            bzero(message, sizeof(message));
+        }
+        if (strcmp(message, "/play") == 0) {
+            bzero(message, sizeof(message));
+            int location;
+            printf("location = ");
+            scanf("%d",&location);
+            sprintf(message, "%d",location);
+            printf("\nSend ms :%s\n",message);
+            send(clientSocket,message,strlen(message),0);
+            bzero(message, sizeof(message));
+        }
     }
     while (1);
     return 0;
 }
-

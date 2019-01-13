@@ -94,6 +94,7 @@ char* playerInfo(player* list, int index) {
     // printf("Info: %s\n", info);
     return info;
 }
+
 player* playerDisconnect(player *list, int number) {
     player *currentNode = list;
     while (1) {

@@ -14,16 +14,19 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "player.h"
+#define MAX_ROOM 10
 
+
+#include "player.h"
+#include "room.h"
 
 int main()
 {   
     printf("Waiting client!\n");
-    //Playerlist
-    // player plList[10];
-    // int playerCount = 0;
     player *list = (player *)malloc(sizeof(player));
+    room roomList[10];
+    // room *roomList = (room*)malloc(10*sizeof(room));
+    setDefault(roomList, 10);
 
     // Tao server socket    
     int serverSocket =  socket(PF_INET,SOCK_STREAM,0);
@@ -123,56 +126,86 @@ int main()
                             }
                             else
                             if (nrecv != 0)
-                                    {
-                                        int isCommand = 0;
-                                        message[nrecv] = 0;
-                                        if(strcmp(message, "/disconnect") == 0) {
-                                            isCommand = 1;
-                                            printf("[-]Disconnect from %s:%d\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
-                                            list = playerDisconnect(list, i);
-                                            bzero(message, sizeof(message));
-                                            break;
-                                        }  
-                                        if (strcmp(message, "/list") == 0) {
-                                            isCommand = 1;
-                                            // printf("Go tolist function\n");
-                                            printPlayerList(list);
-                                            int idx = 0;
-                                            int n = countPlayer(list);
-                                            char sendBuf[1000];
-                                            bzero(sendBuf, sizeof(sendBuf));
-                                            for (idx = 1; idx <= n; idx++) {
-                                                bzero(sendBuf,sizeof(sendBuf));
-                                                strcpy(sendBuf, playerInfo(list, idx));
-                                                send(i,sendBuf, 100,0);
-                                                // printf("Sent Buffer: %s, lenght = %ld\n", sendBuf, strlen(sendBuf));
-                                                bzero(sendBuf,sizeof(sendBuf));
-                                            }
-                                            char tmp[100];
-                                            strcpy(tmp, "/endlist");
-                                            // tmp[strlen(tmp)] = '\0';
-                                            send(i, tmp, sizeof(tmp), 0);
-                                            bzero(tmp, sizeof(tmp));
-                                        }
-                                        if (strcmp(message, "/setname") == 0) {
-                                            isCommand = 1;
-                                            recv(i, message, 1024, 0);
-                                            printf("IP: %s:%d. Name: %s\n",inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port) , message);
-                                            setPlayerName(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), message, i);
-                                            bzero(message, sizeof(message));
-
-                                        }
-                                        if(isCommand == 0) {
-                                            printf("Client:  %s\n", message);
-                                            send(i,message,strlen(message),0);
-                                            bzero(message, sizeof(message));
-                                        }
-
+                            {
+                                int isCommand = 0;
+                                message[nrecv] = 0;
+                                if(strcmp(message, "/disconnect") == 0) {
+                                    isCommand = 1;
+                                    printf("[-]Disconnect from %s:%d\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
+                                    list = playerDisconnect(list, i);
+                                    bzero(message, sizeof(message));
+                                    break;
+                                }  
+                                if (strcmp(message, "/list") == 0) {
+                                    isCommand = 1;
+                                    // printf("Go tolist function\n");
+                                    printPlayerList(list);
+                                    int idx = 0;
+                                    int n = countPlayer(list);
+                                    char sendBuf[1000];
+                                    bzero(sendBuf, sizeof(sendBuf));
+                                    for (idx = 1; idx <= n; idx++) {
+                                        bzero(sendBuf,sizeof(sendBuf));
+                                        strcpy(sendBuf, playerInfo(list, idx));
+                                        send(i,sendBuf, 100,0);
+                                        // printf("Sent Buffer: %s, lenght = %ld\n", sendBuf, strlen(sendBuf));
+                                        bzero(sendBuf,sizeof(sendBuf));
                                     }
-                                    else
-                                    {
-                                    	close_fd = 1;
+                                    char tmp[100];
+                                    strcpy(tmp, "/endlist");
+                                    // tmp[strlen(tmp)] = '\0';
+                                    send(i, tmp, sizeof(tmp), 0);
+                                    bzero(tmp, sizeof(tmp));
+                                }
+                                if (strcmp(message, "/setname") == 0) {
+                                    isCommand = 1;
+                                    recv(i, message, 1024, 0);
+                                    printf("IP: %s:%d. Name: %s\n",inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port) , message);
+                                    setPlayerName(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), message, i);
+                                    bzero(message, sizeof(message));
+
+                                }
+                                if (strcmp(message, "/enterRoom") == 0) {
+                                    printf("Function EnterRoom\n");
+                                    isCommand = 1;
+                                    recv(i, message, 1024, 0);
+                                    int roomNumber = atoi(message);
+                                    printf("request for enter room %d\n", roomNumber);
+                                    if (enterRoom(i, roomList, roomNumber) == 1) {
+                                        printRoomList(roomList);
+                                        printf("Success!\n");
+                                    } else {
+                                        printf("Can't join the room!\n");
                                     }
+                                }
+                                if (strcmp(message, "/leaveRoom") == 0) {
+                                    printf("Function Leave Room!\n");
+                                    isCommand = 1;
+                                    if (leaveRoom(i,roomList) == 1) {
+                                        printRoomList(roomList);
+                                    } else {
+                                        printf("Can't leave the room!\n");
+                                    };
+                                }
+                                if (strcmp(message, "/play") == 0) {
+                                    printf("Function PlayGame\n");
+                                    recv(i, message, 1024, 0);
+                                    int location = atoi(message);
+                                    int playersRoom = inRoom(i, roomList);
+                                    if (playersRoom != -1) {
+                                        printf("Player %d of room %d mark in %d\n", i, playersRoom, location);
+                                    }
+                                }
+                                if(isCommand == 0) {
+                                    printf("Client:  %s\n", message);
+                                    send(i,message,strlen(message),0);
+                                    bzero(message, sizeof(message));
+                                }
+                            }
+                            else
+                            {
+                                close_fd = 1;
+                            }
                         }
                         if (close_fd == 1) 
                         {
