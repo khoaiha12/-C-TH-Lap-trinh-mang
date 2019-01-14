@@ -177,11 +177,11 @@ int main()
                                             bzero(message, sizeof(message));
 
                                         }
-                                        if (strcmp(message, "/enterRoom") == 0) {
+                                        if (strstr(message, "/enterRoom")) {
                                             printf("Function EnterRoom\n");
                                             isCommand = 1;
-                                            recv(i, message, 1024, 0);
-                                            int roomNumber = atoi(message);
+                                            //recv(i, message, 1024, 0);
+                                            int roomNumber = atoi(get_params(message));
                                             printf("request for enter room %d\n", roomNumber);
                                             if (enterRoom(i, roomList, roomNumber) == 1) {
                                                 printRoomList(roomList);

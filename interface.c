@@ -307,6 +307,12 @@ void init_home_window ()
 	gtk_widget_set_size_request(exit_button, 80, 40);
 	gtk_fixed_put (GTK_FIXED (fixed_home), exit_button, 30, 530);
 
+	choose_room_button = gtk_button_new_with_label ("Choose room");
+	gtk_widget_set_size_request(choose_room_button, 100, 41);
+	gtk_fixed_put (GTK_FIXED (fixed_home), choose_room_button, 480, 210);
+
+	g_signal_connect (G_OBJECT(choose_room_button), "clicked", G_CALLBACK(on_choose_room_button_clicked), NULL);
+
 	g_signal_connect (G_OBJECT(exit_button), "clicked", G_CALLBACK(on_exit_button_clicked), NULL);
 
 	g_signal_connect(G_OBJECT(set_button), "clicked", G_CALLBACK(on_set_button_clicked), NULL);
@@ -354,7 +360,8 @@ void init_choose_room_window()
 		
 		gtk_table_attach_defaults(GTK_TABLE(table), button_room[i], 1, 3, i+1, i+2);
 
-		g_signal_connect(G_OBJECT(button_room[i]), "clicked", G_CALLBACK(on_room_button_clicked), NULL);
+		g_signal_connect(G_OBJECT(button_room[i]), "clicked", G_CALLBACK(on_room_button_clicked), (gpointer) i);
+
 		gtk_widget_show(button_room[i]);
 	}
 	gtk_widget_show (table);
@@ -446,7 +453,7 @@ void on_choose_room_button_clicked()
 	gtk_widget_hide(window_home);
 	init_choose_room_window();
 }
-void on_room_button_clicked()
+void on_room_button_clicked(GtkWidget *widget, gpointer data)
 {
 	gtk_widget_hide(window_choose_room);
 	int x,y;
@@ -457,11 +464,17 @@ void on_room_button_clicked()
 			cBoardLoc [x][y] = 'E';
 		}
 	}
+	int room_index = (int) data;
+	printf("%d\n",room_index);
+	char buff_temp[256];
+	sprintf(buff_temp,"%d",room_index);
+	send_room(buff_temp);
 	init_play_window();
 }
 void on_back_button_clicked()
 {
 	gtk_widget_hide(window_main);
+	send_leave_room();
 	gtk_widget_show(window_home);
 }
 
@@ -502,12 +515,6 @@ void on_set_button_clicked()
 	gtk_label_set_markup (GTK_LABEL (label_name), markup);
 	g_free (markup);
 	gtk_fixed_put (GTK_FIXED (fixed_home), label_name, 200, 223);
-
-	choose_room_button = gtk_button_new_with_label ("Choose room");
-	gtk_widget_set_size_request(choose_room_button, 100, 41);
-	gtk_fixed_put (GTK_FIXED (fixed_home), choose_room_button, 480, 210);
-
-	g_signal_connect (G_OBJECT(choose_room_button), "clicked", G_CALLBACK(on_choose_room_button_clicked), NULL);
 
 	gtk_widget_show(label_name);
 	gtk_widget_show (choose_room_button);
