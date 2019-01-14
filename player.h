@@ -1,5 +1,11 @@
 
 typedef struct player1 {
+    int number;
+    char ip_addr[20];
+    int port;
+    char name[20];
+    struct player *next;
+    struct player *prev;
 }player;
 
 void printPlayerList(player *list);

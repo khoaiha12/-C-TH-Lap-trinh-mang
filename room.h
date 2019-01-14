@@ -1,7 +1,11 @@
+
 #define MAX_ROOM 10
 
 typedef struct Room {
-
+    int Player1;
+    int Player2;
+    int inGame;
+    int turn;
 } room;
 
 int enterRoom(int player, room roomList[], int roomNumber);

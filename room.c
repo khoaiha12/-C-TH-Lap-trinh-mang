@@ -2,16 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "room.h"
 #include "player.h"
 
-#define MAX_ROOM 10
 
-typedef struct Room {
-    int Player1;
-    int Player2;
-    int inGame;
-    int turn;
-} room;
+
 
 void setDefault(room roomList[], int max) {
     int i=0;

@@ -2,14 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct player1 {
-    int number;
-    char ip_addr[20];
-    int port;
-    char name[20];
-    struct player *next;
-    struct player *prev;
-}player;
+#include "player.h"
 
 
 void printPlayerList(player *list) {

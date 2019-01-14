@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-I.
 DEPS = player.h
-OBJ = select-server.o player.o room.o 
+OBJ = server.o player.o room.o 
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
