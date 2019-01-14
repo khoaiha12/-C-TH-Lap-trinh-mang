@@ -11,6 +11,7 @@
 void setDefault(room roomList[], int max) {
     int i=0;
     for(i=0; i < max; i++) {
+        roomList[i].id = i;
         roomList[i].Player1 = 0;
         roomList[i].Player2 = 0;
         roomList[i].inGame = 0;
@@ -82,11 +83,22 @@ int startGame(room roomList[], int roomNumber) {
 }
 
 void changeTurn(room roomList[], int roomNumber) {
-        if (roomList[roomNumber].Player1 != 0 && roomList[roomNumber].Player2 != 0 && roomList[roomNumber].inGame == 1) {
+    if (roomList[roomNumber].Player1 != 0 && roomList[roomNumber].Player2 != 0 && roomList[roomNumber].inGame == 1) {
         if (roomList[roomNumber].turn == 1) {
             roomList[roomNumber].turn = 2;
         } else {
             roomList[roomNumber].turn = 1;
         }
+    }
 }
+
+int countPlayerInRoom(room roomList[], int roomNumber) {
+    if(roomList[roomNumber].Player1 == 0 && roomList[roomNumber].Player2 == 0)
+        return 0;
+    if(roomList[roomNumber].Player1 != 0 && roomList[roomNumber].Player2 == 0)
+        return 1;
+    if(roomList[roomNumber].Player1 == 0 && roomList[roomNumber].Player2 != 0)
+        return 1;
+    if(roomList[roomNumber].Player1 != 0 && roomList[roomNumber].Player2 != 0)
+        return 2;
 }

@@ -105,6 +105,28 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 		
 	return TRUE;
 }
+
+void convert_room_detail(char *data) {
+	int i = 0, j, k = 0;
+	char element[10];
+	while(data[i]) {
+		memset(element, 0, strlen(element));
+		j = 0;
+		while(data[i] != '-') {
+			element[j++] = data[i++]; 
+		}
+		room_arr[k].id = atoi(element);
+		memset(element, 0, strlen(element));
+		j = 0;
+		while(data[i] != '#') {
+			element[j++] = data[i++]; 
+		}
+		room_arr[k].client_num = atoi(element);
+		k++; // room index
+		i++; // string index
+	}
+}
+
 void set_message (GtkWidget *w,gpointer data) 
 {
 	gchar *entry_text, *view_text;
@@ -307,6 +329,12 @@ void init_home_window ()
 	gtk_widget_set_size_request(exit_button, 80, 40);
 	gtk_fixed_put (GTK_FIXED (fixed_home), exit_button, 30, 530);
 
+	choose_room_button = gtk_button_new_with_label ("Choose room");
+	gtk_widget_set_size_request(choose_room_button, 100, 41);
+	gtk_fixed_put (GTK_FIXED (fixed_home), choose_room_button, 480, 210);
+
+	g_signal_connect (G_OBJECT(choose_room_button), "clicked", G_CALLBACK(on_choose_room_button_clicked), NULL);
+
 	g_signal_connect (G_OBJECT(exit_button), "clicked", G_CALLBACK(on_exit_button_clicked), NULL);
 
 	g_signal_connect(G_OBJECT(set_button), "clicked", G_CALLBACK(on_set_button_clicked), NULL);
@@ -328,7 +356,7 @@ void init_home_window ()
 	
 }
 
-void init_choose_room_window()
+void init_choose_room_window(char *data)
 {
 	window_choose_room = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	g_signal_connect (G_OBJECT (window_choose_room), "delete_event", G_CALLBACK (delete_event), NULL);
@@ -347,14 +375,18 @@ void init_choose_room_window()
 	gtk_label_set_markup(GTK_LABEL(label_room), "<b>Choose a room</b>");
 	gtk_table_attach_defaults(GTK_TABLE(table), label_room, 1, 3, 0, 1);
 	gtk_widget_show(label_room);
+	convert_room_detail(data);
 	char row[256];
 	for(int i = 0; i < ROOM_NUM; i++) {
-		sprintf(row, "Room %d\n", i+1);
+		memset(row, 0, strlen(row));
+		sprintf(row, "Room %d - %d/2 player\n", room_arr[i].id, room_arr[i].client_num);
+
 		button_room[i] = gtk_button_new_with_label(row);
 		
 		gtk_table_attach_defaults(GTK_TABLE(table), button_room[i], 1, 3, i+1, i+2);
 
-		g_signal_connect(G_OBJECT(button_room[i]), "clicked", G_CALLBACK(on_room_button_clicked), NULL);
+		g_signal_connect(G_OBJECT(button_room[i]), "clicked", G_CALLBACK(on_room_button_clicked), (gpointer) i);
+
 		gtk_widget_show(button_room[i]);
 	}
 	gtk_widget_show (table);
@@ -443,11 +475,20 @@ void init_list(GtkWidget *tlist) {
 
 void on_choose_room_button_clicked()
 {
-	gtk_widget_hide(window_home);
-	init_choose_room_window();
+	send_choose_room();
 }
-void on_room_button_clicked() //onRoomButtonClicked
+void on_room_button_clicked(GtkWidget *widget, gpointer data)
 {
+	
+	int room_index = (int) data;
+	printf("%d\n",room_index);
+	char buff_temp[256];
+	sprintf(buff_temp,"%d",room_index);
+	send_room(buff_temp);
+	// init_play_window();
+}
+
+void enter_room() {
 	gtk_widget_hide(window_choose_room);
 	int x,y;
 	for (y = 0; y <= 9; y++)
@@ -462,6 +503,7 @@ void on_room_button_clicked() //onRoomButtonClicked
 void on_back_button_clicked()
 {
 	gtk_widget_hide(window_main);
+	send_leave_room();
 	gtk_widget_show(window_home);
 }
 
@@ -503,13 +545,13 @@ void on_set_button_clicked()
 	g_free (markup);
 	gtk_fixed_put (GTK_FIXED (fixed_home), label_name, 200, 223);
 
-	choose_room_button = gtk_button_new_with_label ("Choose room");
-	gtk_widget_set_size_request(choose_room_button, 100, 41);
-	gtk_fixed_put (GTK_FIXED (fixed_home), choose_room_button, 480, 210);
-
-	g_signal_connect (G_OBJECT(choose_room_button), "clicked", G_CALLBACK(on_choose_room_button_clicked), NULL);
-
 	gtk_widget_show(label_name);
 	gtk_widget_show (choose_room_button);
 
+}
+
+void server_respond_choose_room_button(char *data)
+{
+	gtk_widget_hide(window_home);
+	init_choose_room_window(data);
 }
