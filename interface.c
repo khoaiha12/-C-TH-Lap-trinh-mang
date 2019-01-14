@@ -105,6 +105,28 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 		
 	return TRUE;
 }
+
+void convert_room_detail(char *data) {
+	int i = 0, j, k = 0;
+	char element[10];
+	while(data[i]) {
+		memset(element, 0, strlen(element));
+		j = 0;
+		while(data[i] != '-') {
+			element[j++] = data[i++]; 
+		}
+		room_arr[k].id = atoi(element);
+		memset(element, 0, strlen(element));
+		j = 0;
+		while(data[i] != '#') {
+			element[j++] = data[i++]; 
+		}
+		room_arr[k].client_num = atoi(element);
+		k++; // room index
+		i++; // string index
+	}
+}
+
 void set_message (GtkWidget *w,gpointer data) 
 {
 	gchar *entry_text, *view_text;
@@ -334,7 +356,7 @@ void init_home_window ()
 	
 }
 
-void init_choose_room_window()
+void init_choose_room_window(char *data)
 {
 	window_choose_room = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	g_signal_connect (G_OBJECT (window_choose_room), "delete_event", G_CALLBACK (delete_event), NULL);
@@ -353,9 +375,12 @@ void init_choose_room_window()
 	gtk_label_set_markup(GTK_LABEL(label_room), "<b>Choose a room</b>");
 	gtk_table_attach_defaults(GTK_TABLE(table), label_room, 1, 3, 0, 1);
 	gtk_widget_show(label_room);
+	convert_room_detail(data);
 	char row[256];
 	for(int i = 0; i < ROOM_NUM; i++) {
-		sprintf(row, "Room %d\n", i+1);
+		memset(row, 0, strlen(row));
+		sprintf(row, "Room %d - %d/2 player\n", room_arr[i].id, room_arr[i].client_num);
+
 		button_room[i] = gtk_button_new_with_label(row);
 		
 		gtk_table_attach_defaults(GTK_TABLE(table), button_room[i], 1, 3, i+1, i+2);
@@ -450,8 +475,7 @@ void init_list(GtkWidget *tlist) {
 
 void on_choose_room_button_clicked()
 {
-	gtk_widget_hide(window_home);
-	init_choose_room_window();
+	send_choose_room();
 }
 void on_room_button_clicked(GtkWidget *widget, gpointer data)
 {
@@ -519,4 +543,10 @@ void on_set_button_clicked()
 	gtk_widget_show(label_name);
 	gtk_widget_show (choose_room_button);
 
+}
+
+void server_respond_choose_room_button(char *data)
+{
+	gtk_widget_hide(window_home);
+	init_choose_room_window(data);
 }

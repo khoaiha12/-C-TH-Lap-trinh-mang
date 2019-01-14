@@ -22,6 +22,8 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data);
 
 void set_message (GtkWidget *w,gpointer data);
 
+void convert_room_detail(char *data);
+
 void init_play_window();
 
 void init_home_window ();
