@@ -5,9 +5,10 @@
 #define BUFF_SIZE 1024
 
 #define ROOM_SIZE 2
-#define ROOM_NUM 8
+#define ROOM_NUM 10
 
 typedef struct Room {
     int id;
     int client_num;
 } Room;
+int clientSocket; 

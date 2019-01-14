@@ -7,15 +7,15 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
-#include "interface.h"
 #include "client_params.h"
+#include "interface.h"
+#include "request.c"
 
 int main (int argc, char *argv[])
 {	
 	gtk_init (&argc, &argv);
-	init_home_window();
-
-    int clientSocket = socket(PF_INET,SOCK_STREAM,0);
+	
+    clientSocket = socket(PF_INET,SOCK_STREAM,0);
 
     if (clientSocket == -1)
     {
@@ -36,6 +36,10 @@ int main (int argc, char *argv[])
         perror("CONNECT");
         exit(0);
     }    
+
+    init_home_window();
+
+
 
     char message[100];
 

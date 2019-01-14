@@ -21,13 +21,6 @@ enum {
 	N_COLUMNS
 };
 
-GtkWidget *list;
-GtkWidget *window_main;
-GtkWidget *window_home;
-GtkWidget *fixed_main;
-GtkWidget *fixed_home;
-GtkWidget *view;
-GtkWidget *entry_mes;
 
 static gboolean get_x_loc (GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -49,7 +42,7 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 	int x = 0, y = 0;
 	int iXPos = 0;
 	int iYPos = 0;
-	GtkWidget *player;
+	GtkWidget *player_img;
 	GtkWidget *dialog_win, *dialog_invalid;
 	GtkResponseType result;
 	char cImgLoc [16] = "./images/";
@@ -72,9 +65,9 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 			y++;
 		}
 			
-		player = gtk_image_new_from_file (cImgLoc);
-		gtk_fixed_put (GTK_FIXED (fixed_main), player, iXPos, iYPos);
-		gtk_widget_show (player);
+		player_img = gtk_image_new_from_file (cImgLoc);
+		gtk_fixed_put (GTK_FIXED (fixed_main), player_img, iXPos, iYPos);
+		gtk_widget_show (player_img);
 		
 		bWon = checkWin(iLocation [0],iLocation [1],cBoardLoc,cTurn);
 		if (bWon == 1)
@@ -118,7 +111,6 @@ void set_message (GtkWidget *w,gpointer data)
 	char text[1000];
 
 	entry_text = gtk_entry_get_text(GTK_ENTRY(entry_mes));
-	//g_print("%s\n",entry_text);
 
 	GtkTextBuffer *buffer;
     GtkTextIter start, end,iter;
@@ -157,7 +149,6 @@ void init_play_window()
 	int iYPos = 0;
 
 	GtkWidget *image_board;
-	GtkWidget *eventbox_main;
 	GtkWidget *scrolling;
 	GtkWidget *send_button, *newgame_button, *back_button;
 
@@ -222,14 +213,14 @@ void init_play_window()
 	{
 		for (x = 0; x <= 9; x++)
 		{
-			eventbox_main = gtk_event_box_new ();
-			g_signal_connect (G_OBJECT (eventbox_main), "button_press_event", G_CALLBACK (get_x_loc), (gpointer) x);
-			g_signal_connect (G_OBJECT (eventbox_main), "button_press_event", G_CALLBACK (get_y_loc), (gpointer) y);
-			g_signal_connect (G_OBJECT (eventbox_main), "button_press_event", G_CALLBACK (make_move), NULL);
-			gtk_widget_set_size_request (eventbox_main, 60, 60);
-			gtk_fixed_put (GTK_FIXED (fixed_main), eventbox_main, iXPos, iYPos);
-			gtk_event_box_set_visible_window (GTK_EVENT_BOX (eventbox_main), FALSE);			
-			gtk_widget_show (eventbox_main);
+			eventbox_main[x][y] = gtk_event_box_new ();
+			g_signal_connect (G_OBJECT (eventbox_main[x][y]), "button_press_event", G_CALLBACK (get_x_loc), (gpointer) x);
+			g_signal_connect (G_OBJECT (eventbox_main[x][y]), "button_press_event", G_CALLBACK (get_y_loc), (gpointer) y);
+			g_signal_connect (G_OBJECT (eventbox_main[x][y]), "button_press_event", G_CALLBACK (make_move), NULL);
+			gtk_widget_set_size_request (eventbox_main[x][y], 60, 60);
+			gtk_fixed_put (GTK_FIXED (fixed_main), eventbox_main[x][y], iXPos, iYPos);
+			gtk_event_box_set_visible_window (GTK_EVENT_BOX (eventbox_main[x][y]), FALSE);			
+			gtk_widget_show (eventbox_main[x][y]);
 					
 			iXPos +=60;
 		}
@@ -255,8 +246,7 @@ void init_play_window()
 void init_home_window ()
 {
 	GtkWidget *image;
-	GtkWidget *entry_name;
-	GtkWidget *play_button, *exit_button, *set_button;
+	GtkWidget *exit_button;
 	GtkWidget *scrolling;
 	GtkWidget *vbox;
 	GtkWidget *label;
@@ -313,17 +303,13 @@ void init_home_window ()
 
   	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
 
-	play_button = gtk_button_new_with_label ("Invite");
-	gtk_widget_set_size_request(play_button, 100, 50);
-	gtk_fixed_put (GTK_FIXED (fixed_home), play_button, 800, 300);
-
 	exit_button = gtk_button_new_with_label ("Exit");
 	gtk_widget_set_size_request(exit_button, 80, 40);
 	gtk_fixed_put (GTK_FIXED (fixed_home), exit_button, 30, 530);
 
-	g_signal_connect (G_OBJECT(play_button), "clicked", G_CALLBACK(on_play_button_clicked), NULL);
-
 	g_signal_connect (G_OBJECT(exit_button), "clicked", G_CALLBACK(on_exit_button_clicked), NULL);
+
+	g_signal_connect(G_OBJECT(set_button), "clicked", G_CALLBACK(on_set_button_clicked), NULL);
 
 	gtk_widget_show (fixed_home);
 	gtk_widget_show (image);
@@ -333,13 +319,47 @@ void init_home_window ()
 	gtk_widget_show (vbox);
 	gtk_widget_show (scrolling);
 	gtk_widget_show (label);
-	gtk_widget_show (play_button);
+	
 	gtk_widget_show (exit_button);
 	gtk_widget_show (window_home);
 	
 	gtk_main();
 	return;
 	
+}
+
+void init_choose_room_window()
+{
+	window_choose_room = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	g_signal_connect (G_OBJECT (window_choose_room), "delete_event", G_CALLBACK (delete_event), NULL);
+	g_signal_connect (G_OBJECT (window_choose_room), "destroy", G_CALLBACK (destroy), NULL);
+	gtk_window_set_title (GTK_WINDOW (window_choose_room), "Caro made by Tạ team");
+	gtk_window_set_default_size(GTK_WINDOW(window_choose_room), 1000, 600);
+	gtk_window_set_position(GTK_WINDOW(window_choose_room), GTK_WIN_POS_CENTER);
+
+	//fixed_choose_room = gtk_fixed_new ();
+	//gtk_container_add (GTK_CONTAINER (window_choose_room), fixed_choose_room);
+	table = gtk_table_new(7, 4, TRUE);
+	gtk_container_add(GTK_CONTAINER(window_choose_room), table);
+
+	GtkWidget *label_room;
+	label_room = gtk_label_new(NULL);
+	gtk_label_set_markup(GTK_LABEL(label_room), "<b>Choose a room</b>");
+	gtk_table_attach_defaults(GTK_TABLE(table), label_room, 1, 3, 0, 1);
+	gtk_widget_show(label_room);
+	char row[256];
+	for(int i = 0; i < ROOM_NUM; i++) {
+		sprintf(row, "Room %d\n", i+1);
+		button_room[i] = gtk_button_new_with_label(row);
+		
+		gtk_table_attach_defaults(GTK_TABLE(table), button_room[i], 1, 3, i+1, i+2);
+
+		g_signal_connect(G_OBJECT(button_room[i]), "clicked", G_CALLBACK(on_room_button_clicked), NULL);
+		gtk_widget_show(button_room[i]);
+	}
+	gtk_widget_show (table);
+	gtk_widget_show (window_choose_room);
+
 }
 
 void add_to_list(GtkWidget *tlist, const gchar *str) {
@@ -421,9 +441,14 @@ void init_list(GtkWidget *tlist) {
   g_object_unref(store);
 }
 
-void on_play_button_clicked()
+void on_choose_room_button_clicked()
 {
 	gtk_widget_hide(window_home);
+	init_choose_room_window();
+}
+void on_room_button_clicked()
+{
+	gtk_widget_hide(window_choose_room);
 	int x,y;
 	for (y = 0; y <= 9; y++)
 	{
@@ -434,7 +459,6 @@ void on_play_button_clicked()
 	}
 	init_play_window();
 }
-
 void on_back_button_clicked()
 {
 	gtk_widget_hide(window_main);
@@ -459,5 +483,33 @@ void on_exit_button_clicked()
 {
 	gtk_widget_destroy(GTK_WIDGET(window_home));
 	gtk_main_quit();
-	exit(0);
+	send_disconnect();
+	exit(1);
+}
+
+void on_set_button_clicked()
+{
+	const gchar *send_buffer = gtk_entry_get_text(GTK_ENTRY(entry_name));
+	send_name(send_buffer);
+	gtk_widget_hide(set_button);
+	gtk_widget_hide(entry_name);
+	label_name = gtk_label_new("");
+	//gtk_label_set_text(label_name, send_buffer);
+	const char *format = "<span font=\"16\" color=\"red\" style=\"italic\">\%s</span>";
+	char *markup;
+
+	markup = g_markup_printf_escaped (format, send_buffer);
+	gtk_label_set_markup (GTK_LABEL (label_name), markup);
+	g_free (markup);
+	gtk_fixed_put (GTK_FIXED (fixed_home), label_name, 200, 223);
+
+	choose_room_button = gtk_button_new_with_label ("Choose room");
+	gtk_widget_set_size_request(choose_room_button, 100, 41);
+	gtk_fixed_put (GTK_FIXED (fixed_home), choose_room_button, 480, 210);
+
+	g_signal_connect (G_OBJECT(choose_room_button), "clicked", G_CALLBACK(on_choose_room_button_clicked), NULL);
+
+	gtk_widget_show(label_name);
+	gtk_widget_show (choose_room_button);
+
 }

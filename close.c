@@ -10,7 +10,7 @@ gboolean delete_event (GtkWidget *widget, GdkEvent *event, gpointer data)
 void destroy (GtkWidget *widget, gpointer data)
 {
 	gtk_main_quit ();
-	exit(0);
+	exit(1);
 }
 void close_window(GtkWidget *widget, gpointer window)
 {
