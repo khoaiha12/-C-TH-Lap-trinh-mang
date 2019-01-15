@@ -18,10 +18,10 @@ void send_leave_room()
 {
     send(clientSocket, "/leaveRoom", strlen("/leaveRoom"), 0);
 }
-void send_play(int x, int y)
+void send_play()
 {
     char play_cmd[LENGTH_MSG];
-    sprintf(play_cmd,"/play %d %d",x,y);
+    sprintf(play_cmd,"/play %d",iLocation[0] + iLocation[1]*10);
     send(clientSocket, play_cmd, strlen(play_cmd)+1, 0);
 }
 void send_choose_room()

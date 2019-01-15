@@ -57,7 +57,7 @@ void enQueue(struct Queue *q, char *k)
 void displayQueue(struct Queue *q) {
     struct QNode *temp = q->front;
     while(temp != NULL) {
-        printf("%s",temp->key);
+        printf("%s\n",temp->key);
         temp = temp->next;
     }
 }  

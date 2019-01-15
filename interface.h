@@ -21,6 +21,8 @@ static gboolean get_y_loc (GtkWidget *widget, GdkEvent *event, gpointer data);
 
 static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data);
 
+void set_move(char *data);
+
 void set_message (GtkWidget *w,gpointer data);
 
 void convert_room_detail(char *data);
@@ -56,3 +58,5 @@ void on_exit_button_clicked();
 void on_set_button_clicked();
 
 void close_window_main();
+
+void on_box_button_clicked();

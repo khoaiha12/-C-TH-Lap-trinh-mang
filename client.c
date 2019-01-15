@@ -42,8 +42,10 @@ void recv_msg() {
 	
 	if (receive > 0) {
 		receive_message[receive] = '\0';
-		puts(receive_message);
+		//puts(receive_message);
 		enQueue(responses, receive_message);
+        printf("Queue: \n");
+        //displayQueue(responses);
         //puts(receive_message);
 	} else if (receive == 0) {
 		// break;
@@ -56,6 +58,7 @@ gboolean timer_exe(gpointer p)
 {
     char msg[1024], *data;
 	struct QNode * response = deQueue(responses);
+    puts(response);
     if (response != NULL) {
 		strcpy(msg, response->key);
         if (strstr(msg, "room_list")) {
@@ -75,9 +78,11 @@ gboolean timer_exe(gpointer p)
             //puts(data);
             init_play_window(data);
 		}
-		// if (strstr(msg, "new_message_success")) {
-		// 	data = get_data(msg);	
-		// }
+        
+		if (strstr(msg, "new_play")) {
+			data = get_data(msg);
+            set_move(data);	
+		}
 		// if (strstr(msg, "your_turn")) {
         //     data = get_data(msg);
 		// }
@@ -134,7 +139,6 @@ int main (int argc, char *argv[])
         printf("Error in setting own to socket");  
 
     init_home_window();
-
 
 
     // char message[100];

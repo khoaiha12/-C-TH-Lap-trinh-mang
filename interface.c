@@ -2,13 +2,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include <gtk/gtk.h>
+#include "client_params.h"
 #include "close.h"
 #include "testwin.h"
 #include "interface.h"
-#include "client_params.h"
+
 
 int wait_key=0;
-int iLocation [2];
+
 char cBoardLoc[10][10] = { {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'}, {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'},
 						   {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'}, {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'},
 						   {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'}, {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'},
@@ -39,7 +40,8 @@ static gboolean get_y_loc (GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	int bWon;
+	//int bWon;
+	send_play();
 	int x = 0, y = 0;
 	int iXPos = 0;
 	int iYPos = 0;
@@ -53,7 +55,7 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 	if (cBoardLoc [iLocation [0]][iLocation [1]] == 'E')
 	{
 		cBoardLoc [iLocation [0]][iLocation [1]] = cTurn;
-		// thực hiện gửi nhận server chỗ này
+
 		while (x < iLocation [0])
 		{	
 			iXPos += 60;
@@ -70,28 +72,28 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 		gtk_fixed_put (GTK_FIXED (fixed_main), player_img, iXPos, iYPos);
 		gtk_widget_show (player_img);
 		
-		bWon = checkWin(iLocation [0],iLocation [1],cBoardLoc,cTurn);
-		if (bWon == 1)
-		{
-			printf ("%c Won the game\n", cTurn);
+		// bWon = checkWin(iLocation [0],iLocation [1],cBoardLoc,cTurn);
+		// if (bWon == 1)
+		// {
+		// 	printf ("%c Won the game\n", cTurn);
 			
-			dialog_win = gtk_message_dialog_new (NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_INFO,GTK_BUTTONS_CLOSE,
-												"%c has won the game\n", cTurn);
+		// 	dialog_win = gtk_message_dialog_new (NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_INFO,GTK_BUTTONS_CLOSE,
+		// 										"%c has won the game\n", cTurn);
 																	
-			result = gtk_dialog_run (GTK_DIALOG (dialog_win));
-			gtk_widget_destroy (dialog_win);
+		// 	result = gtk_dialog_run (GTK_DIALOG (dialog_win));
+		// 	gtk_widget_destroy (dialog_win);
 
-		}
-		else
-		{		
-			if (cTurn == 'X')
-				cTurn = 'O';
-			else
-				cTurn = 'X';
-		}
-		if(result == GTK_RESPONSE_CLOSE){
-			on_newgame_button_clicked();
-		}
+		// }
+		// else
+		// {		
+		// 	if (cTurn == 'X')
+		// 		cTurn = 'O';
+		// 	else
+		// 		cTurn = 'X';
+		// }
+		// if(result == GTK_RESPONSE_CLOSE){
+		// 	on_newgame_button_clicked();
+		// }
 
 	}
 	else
@@ -107,6 +109,50 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 	return TRUE;
 }
 
+void set_move(char *data)
+{
+	int x = 0, y = 0;
+	int iXPos = 0;
+	int iYPos = 0;
+	GtkWidget *player_img;
+	GtkWidget *dialog_invalid;
+	GtkResponseType result;
+	char cImgLocO [16] = "./images/O.png";
+
+	int temp_data = atoi(data);
+	iLocation[0]= temp_data%10;
+	iLocation[1]= (temp_data - iLocation[0])/10;
+	if (cBoardLoc [iLocation [0]][iLocation [1]] == 'E')
+	{
+		cBoardLoc [iLocation [0]][iLocation [1]] = cTurnO;
+
+		while (x < iLocation [0])
+		{	
+			iXPos += 60;
+			x++;
+		}
+			
+		while (y < iLocation [1])
+		{	
+			iYPos += 60;
+			y++;
+		}
+			
+		player_img = gtk_image_new_from_file (cImgLocO);
+		gtk_fixed_put (GTK_FIXED (fixed_main), player_img, iXPos, iYPos);
+		gtk_widget_show (player_img);
+		
+	}
+	else
+	{
+		g_print ("Invalid move!\n");
+			dialog_invalid = gtk_message_dialog_new (NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
+												"%c has mad an invalid move, try again!", cTurnO);
+												
+			gtk_dialog_run (GTK_DIALOG (dialog_invalid));
+			gtk_widget_destroy (dialog_invalid);
+	}
+}
 void convert_room_detail(char *data) {
 	int i = 0, j, k = 0;
 	char element[10];
@@ -288,6 +334,7 @@ void init_play_window(char * data)
 			g_signal_connect (G_OBJECT (eventbox_main[x][y]), "button_press_event", G_CALLBACK (get_x_loc), (gpointer) x);
 			g_signal_connect (G_OBJECT (eventbox_main[x][y]), "button_press_event", G_CALLBACK (get_y_loc), (gpointer) y);
 			g_signal_connect (G_OBJECT (eventbox_main[x][y]), "button_press_event", G_CALLBACK (make_move), NULL);
+			//g_signal_connect (G_OBJECT (eventbox_main[x][y]), "button_press_event", G_CALLBACK (on_box_button_clicked), NULL);
 			gtk_widget_set_size_request (eventbox_main[x][y], 60, 60);
 			gtk_fixed_put (GTK_FIXED (fixed_main), eventbox_main[x][y], iXPos, iYPos);
 			gtk_event_box_set_visible_window (GTK_EVENT_BOX (eventbox_main[x][y]), FALSE);			
@@ -563,6 +610,10 @@ void on_newgame_button_clicked()
 		}
 	}
 	//init_play_window();
+}
+void on_box_button_clicked()
+{
+	send_play();
 }
 
 void on_exit_button_clicked()

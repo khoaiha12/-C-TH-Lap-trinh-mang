@@ -9,13 +9,20 @@
 
 
 void setDefault(room roomList[], int max) {
-    int i=0;
+    int i=0,x,y;
     for(i=0; i < max; i++) {
         roomList[i].id = i;
         roomList[i].Player1 = 0;
         roomList[i].Player2 = 0;
         roomList[i].inGame = 0;
         roomList[i].turn = 0;
+        for (y = 0; y <= 9; y++)
+            {
+                for (x = 0; x <= 9; x++)
+                {
+                    roomList[i].board[x][y] = 'E';
+                }
+            }
     }
 }
 
