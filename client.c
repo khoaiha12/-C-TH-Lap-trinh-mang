@@ -20,6 +20,7 @@
 #include "request.c"
 #include "queue.c"
 
+flag_turn=1;
 char * get_data(char command[]) {
 	int i = 0, j;
 	while (command[i] != ' ') {
@@ -81,15 +82,18 @@ gboolean timer_exe(gpointer p)
             puts(data);
             set_move(data);	
 		}
+        if (strstr(msg, "your_turn")) {
+            flag_turn = 1;
+            printf("turn: %d\n", flag_turn );
+		}
+        if (strstr(msg, "opponent_turn")) {
+            flag_turn = 0;
+            printf("turn: %d\n", flag_turn );
+		}
 		// if (strstr(msg, "new_message_success")) {
 		// 	data = get_data(msg);	
 		// }
-		// if (strstr(msg, "your_turn")) {
-        //     data = get_data(msg);
-		// }
-        // if (strstr(msg, "opponent_turn")) {
-        //     data = get_data(msg);
-		// }
+		
 	}
     return TRUE;
 }

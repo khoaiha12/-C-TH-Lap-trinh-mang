@@ -44,12 +44,12 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 	int iXPos = 0;
 	int iYPos = 0;
 	GtkWidget *player_img;
-	GtkWidget *dialog_win, *dialog_invalid;
+	GtkWidget *dialog_turn, *dialog_invalid;
 	GtkResponseType result;
 	char cImgLoc [16] = "./images/";
 	strcat (cImgLoc, &cTurn);
 	strcat (cImgLoc, ".png");
-	
+	if(flag_turn == 1){
 	if (cBoardLoc [iLocation [0]][iLocation [1]] == 'E')
 	{
 		
@@ -104,6 +104,14 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 												
 			gtk_dialog_run (GTK_DIALOG (dialog_invalid));
 			gtk_widget_destroy (dialog_invalid);
+	}
+	}
+	else{
+		dialog_turn = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
+												"%s", "Not your turn, wait opponent");
+												
+		gtk_dialog_run (GTK_DIALOG (dialog_turn));
+		gtk_widget_destroy (dialog_turn);
 	}
 		
 	return TRUE;
