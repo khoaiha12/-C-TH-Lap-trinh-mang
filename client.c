@@ -75,6 +75,12 @@ gboolean timer_exe(gpointer p)
             //puts(data);
             init_play_window(data);
 		}
+        if (strstr(msg, "new_play")) {
+			data = get_data(msg);
+            puts("test_new");
+            puts(msg);
+            //set_move(data);	
+		}
 		// if (strstr(msg, "new_message_success")) {
 		// 	data = get_data(msg);	
 		// }

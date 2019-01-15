@@ -16,6 +16,7 @@
 
 player *list;
 room roomList[MAX_ROOM];
+int location [2];
 
 char * get_params(char command[]) {
 	int i = 0, j;
@@ -247,13 +248,21 @@ int main()
                                                 printf("Can't leave the room!\n");
                                             };
                                         }
-                                        if (strcmp(message, "/play") == 0) {
+                                        if (strstr(message, "/play")) {
                                             printf("Function PlayGame\n");
-                                            recv(i, message, 1024, 0);
-                                            int location = atoi(message);
+                                            int temp_data = atoi(get_params(message));
+                                            location[0]= temp_data%10;
+                                            location[1]= (temp_data - location[0])/10;
+                                            printf("%d-----------%d\n",location[0], location[1]);
                                             int playersRoom = inRoom(i, roomList);
-                                            if (playersRoom != -1) {
-                                                printf("Player %d of room %d mark in %d\n", i, playersRoom, location);
+                                            sprintf(msg, "new_play: ");
+                                            if(roomList[playersRoom].Player1 == i){
+                                                sprintf(msg+ strlen(msg),"%s",get_params(message));
+                                                send(roomList[playersRoom].Player2, msg,strlen(msg),0 );
+                                            }
+                                            else if(roomList[playersRoom].Player2 == i){
+                                                sprintf(msg+ strlen(msg),"%s",get_params(message));
+                                                send(roomList[playersRoom].Player1, msg,strlen(msg),0 );
                                             }
                                         }
                                         if(isCommand == 0) {

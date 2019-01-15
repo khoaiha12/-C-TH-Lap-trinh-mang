@@ -21,3 +21,4 @@ typedef struct Client {
 int clientSocket;
 Room1 room_arr[ROOM_NUM]; 
 struct Queue *responses;
+int iLocation [2];

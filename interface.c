@@ -39,6 +39,7 @@ static gboolean get_y_loc (GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 {
+	send_play();
 	int bWon;
 	int x = 0, y = 0;
 	int iXPos = 0;
