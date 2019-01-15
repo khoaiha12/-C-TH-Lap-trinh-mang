@@ -77,9 +77,9 @@ gboolean timer_exe(gpointer p)
 		}
         if (strstr(msg, "new_play")) {
 			data = get_data(msg);
-            puts("test_new");
-            puts(msg);
-            //set_move(data);	
+            //puts("test_new");
+            puts(data);
+            set_move(data);	
 		}
 		// if (strstr(msg, "new_message_success")) {
 		// 	data = get_data(msg);	

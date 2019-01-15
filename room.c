@@ -16,6 +16,14 @@ void setDefault(room roomList[], int max) {
         roomList[i].Player2 = 0;
         roomList[i].inGame = 0;
         roomList[i].turn = 0;
+        int x,y;
+	    for (y = 0; y <= 9; y++)
+	    {
+            for (x = 0; x <= 9; x++)
+            {
+                roomList[i].Board[x][y] = 'E';
+            }
+	    }
     }
 }
 
