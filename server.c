@@ -13,6 +13,7 @@
 #include "server_params.h"
 #include "player.h"
 #include "room.h"
+#include "testwin.h"
 
 player *list;
 room roomList[MAX_ROOM];
@@ -213,6 +214,9 @@ int main()
                                                 sprintf(msg, "wait_player: ");
                                                 sprintf(msg_temp1, "refresh_room: ");
                                                 sprintf(msg_temp2, "refresh_room: ");
+                                                if(countPlayerInRoom(roomList, roomNumber)== 2){
+                                                    roomList[roomNumber].turn = roomList[roomNumber].Player1;
+                                                }
                                                 if(countPlayerInRoom(roomList, roomNumber)== 1){
                                                     puts(msg);
                                                     send(i, msg, strlen(msg),0);
@@ -255,13 +259,23 @@ int main()
                                             location[1]= (temp_data - location[0])/10;
                                             //printf("%d-----------%d\n",location[0], location[1]);
                                             int playersRoom = inRoom(i, roomList);
-                                            
+                                            int bWon;
                                             sprintf(msg, "new_play: ");
                                             if(roomList[playersRoom].Player1 == i){
+                                                roomList[playersRoom].Board[location[0]][location[1]] = 'X';
+                                                bWon = checkWin(location [0],location [1],roomList[playersRoom].Board,'X');
+                                                if(bWon==1){
+                                                    puts("Player 1 win");
+                                                }
                                                 sprintf(msg+ strlen(msg),"%s",get_params(message));
                                                 send(roomList[playersRoom].Player2, msg,strlen(msg),0 );
                                             }
                                             else if(roomList[playersRoom].Player2 == i){
+                                                roomList[playersRoom].Board[location[0]][location[1]] = 'O';
+                                                bWon = checkWin(location [0],location [1],roomList[playersRoom].Board,'O');
+                                                if(bWon==1){
+                                                    puts("Player 2 win");
+                                                }
                                                 sprintf(msg+ strlen(msg),"%s",get_params(message));
                                                 send(roomList[playersRoom].Player1, msg,strlen(msg),0 );
                                             }

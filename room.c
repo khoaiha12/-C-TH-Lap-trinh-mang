@@ -5,9 +5,6 @@
 #include "room.h"
 #include "player.h"
 
-
-
-
 void setDefault(room roomList[], int max) {
     int i=0;
     for(i=0; i < max; i++) {
@@ -91,12 +88,10 @@ int startGame(room roomList[], int roomNumber) {
 }
 
 void changeTurn(room roomList[], int roomNumber) {
-    if (roomList[roomNumber].Player1 != 0 && roomList[roomNumber].Player2 != 0 && roomList[roomNumber].inGame == 1) {
-        if (roomList[roomNumber].turn == 1) {
-            roomList[roomNumber].turn = 2;
-        } else {
-            roomList[roomNumber].turn = 1;
-        }
+    if (roomList[roomNumber].turn == roomList[roomNumber].Player1 && roomList[roomNumber].turn !=0) {
+        roomList[roomNumber].turn = roomList[roomNumber].Player2;
+    } else if(roomList[roomNumber].turn == roomList[roomNumber].Player2 && roomList[roomNumber].turn !=0){
+        roomList[roomNumber].turn = roomList[roomNumber].Player1;
     }
 }
 

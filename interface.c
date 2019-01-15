@@ -39,7 +39,6 @@ static gboolean get_y_loc (GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	send_play();
 	// int bWon;
 	int x = 0, y = 0;
 	int iXPos = 0;
@@ -53,7 +52,9 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 	
 	if (cBoardLoc [iLocation [0]][iLocation [1]] == 'E')
 	{
+		
 		cBoardLoc [iLocation [0]][iLocation [1]] = cTurn;
+		send_play();
 		// thực hiện gửi nhận server chỗ này
 		while (x < iLocation [0])
 		{	
@@ -99,7 +100,7 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 	{
 		g_print ("Invalid move!\n");
 			dialog_invalid = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
-												"%c has mad an invalid move, try again!", cTurn);
+												"%s", "An invalid move, try again!");
 												
 			gtk_dialog_run (GTK_DIALOG (dialog_invalid));
 			gtk_widget_destroy (dialog_invalid);
@@ -141,39 +142,7 @@ void set_move(char *data)
 		player_img = gtk_image_new_from_file (cImgLoc);
 		gtk_fixed_put (GTK_FIXED (fixed_main), player_img, iXPos, iYPos);
 		gtk_widget_show (player_img);
-		
-		// bWon = checkWin(iLocation [0],iLocation [1],cBoardLoc,cTurn);
-		// if (bWon == 1)
-		// {
-		// 	printf ("%c Won the game\n", cTurn);
-			
-		// 	dialog_win = gtk_message_dialog_new (NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_INFO,GTK_BUTTONS_CLOSE,
-		// 										"%c has won the game\n", cTurn);
-																	
-		// 	result = gtk_dialog_run (GTK_DIALOG (dialog_win));
-		// 	gtk_widget_destroy (dialog_win);
 
-		// }
-		// else
-		// {		
-		// 	if (cTurn == 'X')
-		// 		cTurn = 'O';
-		// 	else
-		// 		cTurn = 'X';
-		// }
-		// if(result == GTK_RESPONSE_CLOSE){
-		// 	on_newgame_button_clicked();
-		// }
-
-	}
-	else
-	{
-		g_print ("Invalid move!\n");
-			dialog_invalid = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
-												"%c has mad an invalid move, try again!", 'O');
-												
-			gtk_dialog_run (GTK_DIALOG (dialog_invalid));
-			gtk_widget_destroy (dialog_invalid);
 	}
 }
 void convert_room_detail(char *data) {
