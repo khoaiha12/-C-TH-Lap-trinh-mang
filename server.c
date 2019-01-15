@@ -116,7 +116,7 @@ int main()
                         {                          
                             int newCon = accept(serverSocket,(struct sockaddr*)&clientAddress,&len);
                             printf("Connection accepted \n");
-                            list = addNewPlayer(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), "\0");
+                            // char response[100] = "connect_success\0";
                             FD_SET(newCon,&masterfds);
                             if (newCon > max_fd ) max_fd = newCon;
                             
@@ -147,6 +147,12 @@ int main()
                                             bzero(message, sizeof(message));
                                             break;
                                         }  
+                                        if(strcmp(message, "/confirm_connection") == 0) {
+                                            isCommand = 1;
+                                            list = addNewPlayer(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), "\0", i);
+                                            bzero(message, sizeof(message));
+                                            break;
+                                        }  
                                         if (strcmp(message, "/list") == 0) {
                                             isCommand = 1;
                                             // printf("Go tolist function\n");
@@ -170,7 +176,7 @@ int main()
                                         if (strstr(message, "/setname")) {
                                             isCommand = 1;
                                             printf("%s\n", get_params(message));
-                                            setPlayerName(list, inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), get_params(message), i);
+                                            setPlayerName(list, get_params(message), i);
                                             printPlayerList(list);
                                             bzero(message, sizeof(message));
 

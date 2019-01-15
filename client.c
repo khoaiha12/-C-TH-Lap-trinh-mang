@@ -64,6 +64,7 @@ gboolean timer_exe(gpointer p)
         if (strstr(msg, "room_list")) {
 			data = get_data(msg);
             printf("%s\n",msg);
+            puts(data);
             server_respond_choose_room_button(data);
 		}
 		if (strstr(msg, "join_room_success")) {	
@@ -100,7 +101,8 @@ int main (int argc, char *argv[])
 
 
 	gtk_init (&argc, &argv);
-	
+
+
     clientSocket = socket(PF_INET,SOCK_STREAM,0);
 
     if (clientSocket == -1)
@@ -122,23 +124,24 @@ int main (int argc, char *argv[])
         perror("CONNECT");
         exit(0);
     }  
+
     // Signal driven I/O mode and NONBlOCK mode so that recv will not block
     if (fcntl(clientSocket, F_SETFL, O_NONBLOCK | O_ASYNC))
         printf("Error in setting socket to async, nonblock mode");
 
     signal(SIGIO, recv_msg); // assign SIGIO to the handler
     // set this process to be the process owner for SIGIO signal
+    
     if (fcntl(clientSocket, F_SETOWN, getpid()) < 0)
-        printf("Error in setting own to socket");  
+        printf("Error in setting own to socket");
+    char message[100];
+    strcpy(message, "/confirm_connection");
+    send(clientSocket, message, strlen(message)+1, 0);
 
     init_home_window();
 
 
     // console test
-    // char message[100];
-
-    // strcpy(message, "/setname");
-    // send(clientSocket, message, strlen(message)+1, 0);
     // printf("Choose a name: ");
     // char name[20];
     // scanf("%s", name);
