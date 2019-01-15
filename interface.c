@@ -7,6 +7,7 @@
 #include "interface.h"
 #include "client_params.h"
 
+int wait_key=0;
 int iLocation [2];
 char cBoardLoc[10][10] = { {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'}, {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'},
 						   {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'}, {'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'},
@@ -69,7 +70,7 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 		gtk_fixed_put (GTK_FIXED (fixed_main), player_img, iXPos, iYPos);
 		gtk_widget_show (player_img);
 		
-		bWon = checkWin(iLocation [0],iLocation [1],cBoardLoc,cTurn);
+		// bWon = checkWin(iLocation [0],iLocation [1],cBoardLoc,cTurn);
 		if (bWon == 1)
 		{
 			printf ("%c Won the game\n", cTurn);
@@ -164,15 +165,52 @@ void set_message (GtkWidget *w,gpointer data)
 
 }
 
-void init_play_window() 
+void hide_room_select() {
+	gtk_widget_hide(window_choose_room);
+}
+void wait_player_window(char *data)
+{
+	if(strcmp(data,"wait_key")==0)
+	{
+		wait_key = 1;
+			
+		window_wait = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+		g_signal_connect (G_OBJECT (window_wait), "delete_event", G_CALLBACK (delete_event), NULL);
+		g_signal_connect (G_OBJECT (window_wait), "destroy", G_CALLBACK (destroy), NULL);
+		gtk_window_set_title (GTK_WINDOW (window_wait), "Caro made by Tạ team");
+		gtk_window_set_default_size(GTK_WINDOW(window_wait), 600, 400);
+		gtk_window_set_position(GTK_WINDOW(window_wait), GTK_WIN_POS_CENTER);
+		gtk_container_set_border_width (GTK_CONTAINER (window_wait), 15);
+
+		fixed_wait = gtk_fixed_new ();
+		gtk_container_add (GTK_CONTAINER (window_wait), fixed_wait);
+		label_wait = gtk_label_new("");
+		const char *format = "<span font=\"25\" color=\"red\" style=\"italic\">\%s</span>";
+		char *markup;
+
+		markup = g_markup_printf_escaped (format, "Waiting anothor player");
+		gtk_label_set_markup (GTK_LABEL (label_wait), markup);
+		g_free (markup);
+		gtk_fixed_put (GTK_FIXED (fixed_wait), label_wait, 200, 223);
+
+		gtk_widget_show(label_wait);
+		gtk_widget_show (fixed_wait);
+		gtk_widget_show (window_wait);
+	}
+}
+void init_play_window(char * data) 
 {
 	int x, y;
 	int iXPos = 0;
 	int iYPos = 0;
 
 	GtkWidget *image_board;
-	GtkWidget *scrolling;
+	GtkWidget *scrolling, *label_player;
 	GtkWidget *send_button, *newgame_button, *back_button;
+
+	if(wait_key == 1){
+		gtk_widget_hide(window_wait);
+	}
 
 	window_main = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	g_signal_connect (G_OBJECT (window_main), "delete_event", G_CALLBACK (delete_event), NULL);
@@ -221,6 +259,21 @@ void init_play_window()
 	back_button = gtk_button_new_with_label ("Back");
 	gtk_widget_set_size_request(back_button, 100, 50);
 	gtk_fixed_put (GTK_FIXED (fixed_main), back_button, 780, 475);
+
+	if(strcmp(data,"wait_key")!=0){
+
+	label_player = gtk_label_new("");
+	const char *format = "<span font=\"15\" color=\"red\">Your opponent: \%s</span>";
+	char *markup;
+
+	markup = g_markup_printf_escaped (format, data);
+	gtk_label_set_markup (GTK_LABEL (label_player), markup);
+	g_free (markup);
+	gtk_fixed_put (GTK_FIXED (fixed_main), label_player, 630, 420);
+	gtk_widget_show (label_player);
+
+	}
+
 
 	g_signal_connect(G_OBJECT(newgame_button), "clicked", G_CALLBACK(on_newgame_button_clicked), NULL);
 
@@ -479,7 +532,6 @@ void on_choose_room_button_clicked()
 }
 void on_room_button_clicked(GtkWidget *widget, gpointer data)
 {
-	
 	int room_index = (int) data;
 	printf("%d\n",room_index);
 	char buff_temp[256];
@@ -487,19 +539,25 @@ void on_room_button_clicked(GtkWidget *widget, gpointer data)
 	send_room(buff_temp);
 	// init_play_window();
 }
+void room_full_notice(char* data) {
+	// GtkWidget *dialog_room_full;
+	// dialog_room_full = gtk_message_dialog_new (GTK_WINDOW(window_choose_room),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
+	// 								"Room is full!\n");
+	// gtk_dialog_run (GTK_DIALOG (dialog_room_full));
+	// gtk_widget_destroy(dialog_room_full);
+		GtkWidget *dialog;
+		GtkDialogFlags flags = GTK_DIALOG_MODAL;
+		dialog = gtk_message_dialog_new (GTK_WINDOW(window_choose_room),
+										flags,
+										GTK_MESSAGE_ERROR,
+										GTK_BUTTONS_CLOSE,
+										"%s",
+										"Room full!\n"
+										);
+		gtk_dialog_run (GTK_DIALOG (dialog));
+		gtk_widget_destroy (dialog);
 
-void enter_room() {
-	gtk_widget_hide(window_choose_room);
-	int x,y;
-	for (y = 0; y <= 9; y++)
-	{
-		for (x = 0; x <= 9; x++)
-		{
-			cBoardLoc [x][y] = 'E';
-		}
 	}
-	init_play_window();
-}
 void on_back_button_clicked()
 {
 	gtk_widget_hide(window_main);
@@ -518,7 +576,7 @@ void on_newgame_button_clicked()
 			cBoardLoc [x][y] = 'E';
 		}
 	}
-	init_play_window();
+	//init_play_window();
 }
 
 void on_exit_button_clicked()
@@ -552,6 +610,7 @@ void on_set_button_clicked()
 
 void server_respond_choose_room_button(char *data)
 {
+	printf("test\n");
 	gtk_widget_hide(window_home);
 	init_choose_room_window(data);
 }

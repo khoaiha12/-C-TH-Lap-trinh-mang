@@ -11,6 +11,13 @@ typedef struct Room1 {
     int id;
     int client_num;
 } Room1;
+
+typedef struct Client {
+    int connfd;
+    int room_id;
+    char name[100];
+} Client;
+
 int clientSocket;
 Room1 room_arr[ROOM_NUM]; 
 struct Queue *responses;

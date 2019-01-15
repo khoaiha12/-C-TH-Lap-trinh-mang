@@ -14,3 +14,4 @@ void setPlayerName(player *list, char *name, int i);
 int countPlayer(player *list);
 char* playerInfo(player* list, int index);
 player* playerDisconnect(player *list, int number);
+char *getPlayerName(player* list, int number);

@@ -89,6 +89,17 @@ char* playerInfo(player* list, int index) {
     return info;
 }
 
+char *getPlayerName(player* list, int number){
+    player *currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+        if (currentNode->number == number) {
+            return currentNode->name;
+        }
+    }
+    return "#";
+}
 player* playerDisconnect(player *list, int number) {
     player *currentNode = list;
     while (1) {

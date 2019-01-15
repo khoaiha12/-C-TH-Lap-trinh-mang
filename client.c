@@ -44,6 +44,7 @@ void recv_msg() {
 		receive_message[receive] = '\0';
 		puts(receive_message);
 		enQueue(responses, receive_message);
+        //puts(receive_message);
 	} else if (receive == 0) {
 		// break;
 	} else { 
@@ -57,10 +58,6 @@ gboolean timer_exe(gpointer p)
 	struct QNode * response = deQueue(responses);
     if (response != NULL) {
 		strcpy(msg, response->key);
-		if (strstr(msg, "new_client_success")) {
-			data = get_data(msg);
-            printf("%s\n",msg);
-		}
         if (strstr(msg, "room_list")) {
 			data = get_data(msg);
             printf("%s\n",msg);
@@ -69,20 +66,43 @@ gboolean timer_exe(gpointer p)
 		}
 		if (strstr(msg, "join_room_success")) {	
 			data = get_data(msg);
-            enter_room();
+            // enter_room();
 		}
 		if (strstr(msg, "join_room_error")) {
 			puts(msg);
+            room_full_notice();
 		}
 		if (strstr(msg, "new_message_success")) {
 			data = get_data(msg);	
 		}
 		if (strstr(msg, "your_turn")) {
             data = get_data(msg);
+            puts(data);
+            server_respond_choose_room_button(data);
 		}
-        if (strstr(msg, "opponent_turn")) {
+		if (strstr(msg, "wait_player")) {	
+			//data = get_data(msg);
+            hide_room_select();
+            wait_player_window("wait_key");
+		}
+		// if (strstr(msg, "join_room_error")) {
+		// 	puts(msg);
+		// }
+        if (strstr(msg, "refresh_room")) {
             data = get_data(msg);
+            //puts(data);
+            hide_room_select();
+            init_play_window(data);
 		}
+		// if (strstr(msg, "new_message_success")) {
+		// 	data = get_data(msg);	
+		// }
+		// if (strstr(msg, "your_turn")) {
+        //     data = get_data(msg);
+		// }
+        // if (strstr(msg, "opponent_turn")) {
+        //     data = get_data(msg);
+		// }
 	}
     return TRUE;
 }

@@ -14,6 +14,9 @@
 #include "player.h"
 #include "room.h"
 
+player *list;
+room roomList[MAX_ROOM];
+
 char * get_params(char command[]) {
 	int i = 0, j;
 	while (command[i] != ' ') {
@@ -29,15 +32,26 @@ char * get_params(char command[]) {
 	return params;
 }
 
+void send_msg_room(int playerNumber, int roomNumber, char *msg) {
+    //int client_num = countPlayer(list);
+    if(countPlayerInRoom(roomList, roomNumber)== 2){
+        if(roomList[roomNumber].Player1 == playerNumber){
+            send(roomList[roomNumber].Player2, msg, strlen(msg), 0);
+        }
+        else if(roomList[roomNumber].Player2 == playerNumber){
+            send(roomList[roomNumber].Player1, msg, strlen(msg), 0);
+        }
+    }
+}
+
 int main()
 {   
     printf("Waiting client!\n");
     //Playerlist
     // player plList[10];
     // int playerCount = 0;
-    player *list = (player *)malloc(sizeof(player));
+    list = (player *)malloc(sizeof(player));
 
-    room roomList[MAX_ROOM];
     setDefault(roomList, MAX_ROOM);
 
     // Tao server socket    
@@ -125,6 +139,7 @@ int main()
                         {
                             char message[LENGTH_MSG];
                             char msg[LENGTH_MSG];
+                            char msg_temp1[LENGTH_MSG], msg_temp2[LENGTH_MSG];
                             printf("Receive data in socket %d\n",i);
                             int nrecv = recv(i,message,100,0);
                             // printf("%s\n",message);
@@ -137,7 +152,7 @@ int main()
                             else
                             if (nrecv != 0)
                                     {
-                                        int isCommand = 0, temp;
+                                        int isCommand = 0, temp, roomNumber;
                                         message[nrecv] = 0;
                                         printf("%s\n",message);
                                         if(strcmp(message, "/disconnect") == 0) {
@@ -181,12 +196,13 @@ int main()
                                             bzero(message, sizeof(message));
 
                                         }
-                                        if (strcmp(message, "/chooseRoom") == 0) {
+                                        if (strstr(message, "/chooseRoom")) {
                                             isCommand = 1;
                                             sprintf(msg, "room_list: ");
                                             for (temp = 0; temp < MAX_ROOM; temp++) {
 					                            sprintf(msg + strlen(msg), "%d-%d#", temp +1, countPlayerInRoom(roomList, temp));	
 				                            }
+                                            puts(msg);
 				                            send(i, msg, strlen(msg), 0);
                                             
                                         }
@@ -194,19 +210,46 @@ int main()
                                             printf("Function EnterRoom\n");
                                             isCommand = 1;
                                             //recv(i, message, 1024, 0);
-                                            int roomNumber = atoi(get_params(message));
+                                            roomNumber = atoi(get_params(message));
                                             printf("request for enter room %d\n", roomNumber);
                                             if (enterRoom(i, roomList, roomNumber) == 1) {
                                                 printRoomList(roomList);
                                                 printf("Success!\n");
                                                 char response[100] = "join_room_success\0";
                                                 send(i,response,strlen(response),0);
+                                                sprintf(msg, "wait_player: ");
+                                                sprintf(msg_temp1, "refresh_room: ");
+                                                sprintf(msg_temp2, "refresh_room: ");
+                                                if(countPlayerInRoom(roomList, roomNumber)== 1){
+                                                    puts(msg);
+                                                    send(i, msg, strlen(msg),0);
+                                                }else
+                                                if(roomList[roomNumber].Player1 == i && roomList[roomNumber].Player2 != 0){
+                                                    sprintf(msg_temp1+strlen(msg_temp1), "%s", getPlayerName(list,i));
+                                                    sprintf(msg_temp2+strlen(msg_temp2), "%s", getPlayerName(list,roomList[roomNumber].Player2));
+                                                    send(roomList[roomNumber].Player2, msg_temp1, strlen(msg_temp1),0);
+                                                    send(i,msg_temp2,strlen(msg_temp2),0);
+                                                    puts(msg_temp1);
+                                                    puts(msg_temp2);
+                                                }else
+                                                if(roomList[roomNumber].Player2 == i && roomList[roomNumber].Player1 != 0){
+                                                    sprintf(msg_temp1+strlen(msg_temp1), "%s", getPlayerName(list,roomList[roomNumber].Player1));
+                                                    sprintf(msg_temp2+strlen(msg_temp2), "%s", getPlayerName(list,i));
+                                                    send(i, msg_temp1, strlen(msg_temp1),0);
+                                                    send(roomList[roomNumber].Player1,msg_temp2,strlen(msg_temp2),0);
+                                                    puts(msg_temp1);
+                                                    puts(msg_temp2);
+                                                }
+
                                             } else {
                                                 printf("Can't join the room!\n");
-                                                char response[100] = "join_room_error: Room is full!\0";
-                                                send(i,response,strlen(response),0);
+                                                sprintf(msg, "join_room_error: ");
+                                                for (temp = 0; temp < MAX_ROOM; temp++) {
+                                                    sprintf(msg + strlen(msg), "%d-%d#", temp +1, countPlayerInRoom(roomList, temp));	
+                                                }
+                                                puts(msg);
+                                                send(i, msg, strlen(msg), 0);                                            }
                                             }
-                                        }
                                         if (strcmp(message, "/leaveRoom") == 0) {
                                             printf("Function Leave Room!\n");
                                             isCommand = 1;

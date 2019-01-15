@@ -51,7 +51,7 @@ int leaveRoom(int player, room roomList[]) {
 }
 
 int inRoom(int player, room roomList[]) {
-        int roomNumber;
+    int roomNumber;
     for(roomNumber=0; roomNumber<10; roomNumber++) {
         if (roomList[roomNumber].Player1 == player) {
             return roomNumber;
