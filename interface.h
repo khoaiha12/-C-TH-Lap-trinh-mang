@@ -13,6 +13,7 @@ GtkWidget *entry_mes;
 GtkWidget *entry_name;
 GtkWidget *set_button, *choose_room_button;
 GtkWidget *label_name, *button_room[10];
+GtkWidget *window_wait, *fixed_wait, *label_wait;
 
 static gboolean get_x_loc (GtkWidget *widget, GdkEvent *event, gpointer data);
 
@@ -24,7 +25,9 @@ void set_message (GtkWidget *w,gpointer data);
 
 void convert_room_detail(char *data);
 
-void init_play_window();
+void wait_player_window(char *data);
+
+void init_play_window(char *data);
 
 void init_home_window ();
 
