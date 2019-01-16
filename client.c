@@ -147,6 +147,10 @@ int main (int argc, char *argv[])
     serverAddress.sin_family = AF_INET; // Address family
     serverAddress.sin_port = htons(5000); // Port
     serverAddress.sin_addr.s_addr = INADDR_ANY;
+    // Neu muon dung trong mang phai thay bang  
+    // serverAddress.sin_addr.s_addr = inet_addr(address);
+    // Trong do, address : la ip may hien tai trong mang
+
 
     socklen_t len = sizeof (struct sockaddr_in);
 

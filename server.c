@@ -140,7 +140,7 @@ int main()
                         else
                         {
                             char message[LENGTH_MSG];
-                            char msg[LENGTH_MSG];
+                            char response[LENGTH_MSG];
                             char msg_temp1[LENGTH_MSG], msg_temp2[LENGTH_MSG];
                             printf("Receive data in socket %d\n",i);
                             int nrecv = recv(i,message,100,0);
@@ -201,12 +201,12 @@ int main()
                                         }
                                         if (strstr(message, "/chooseRoom")) {
                                             isCommand = 1;
-                                            sprintf(msg, "room_list: ");
+                                            sprintf(response, "room_list: ");
                                             for (temp = 0; temp < MAX_ROOM; temp++) {
-					                            sprintf(msg + strlen(msg), "%d-%d#", temp +1, countPlayerInRoom(roomList, temp));	
+					                            sprintf(response + strlen(response), "%d-%d#", temp +1, countPlayerInRoom(roomList, temp));	
 				                            }
-                                            puts(msg);
-				                            send(i, msg, strlen(msg), 0);
+                                            puts(response);
+				                            send(i, response, strlen(response), 0);
                                             
                                         }
                                         if (strstr(message, "/enterRoom")) {
@@ -220,12 +220,12 @@ int main()
                                                 printf("Success!\n");
                                                 char response[100] = "join_room_success\0";
                                                 send(i,response,strlen(response),0);
-                                                sprintf(msg, "wait_player: ");
+                                                sprintf(response, "wait_player: ");
                                                 sprintf(msg_temp1, "refresh_room: ");
                                                 sprintf(msg_temp2, "refresh_room: ");
                                                 if(countPlayerInRoom(roomList, roomNumber)== 1){
-                                                    puts(msg);
-                                                    send(i, msg, strlen(msg)+1,0);
+                                                    puts(response);
+                                                    send(i, response, strlen(response)+1,0);
                                                 }else
                                                 if(roomList[roomNumber].Player1 == i && roomList[roomNumber].Player2 != 0){
                                                     sprintf(msg_temp1+strlen(msg_temp1), "%s", getPlayerName(list,i));
@@ -259,12 +259,12 @@ int main()
 
                                             } else {
                                                 printf("Can't join the room!\n");
-                                                sprintf(msg, "join_room_error: ");
+                                                sprintf(response, "join_room_error: ");
                                                 for (temp = 0; temp < MAX_ROOM; temp++) {
-                                                    sprintf(msg + strlen(msg), "%d-%d#", temp +1, countPlayerInRoom(roomList, temp));	
+                                                    sprintf(response + strlen(response), "%d-%d#", temp +1, countPlayerInRoom(roomList, temp));	
                                                 }
-                                                puts(msg);
-                                                send(i, msg, strlen(msg), 0);                                            }
+                                                puts(response);
+                                                send(i, response, strlen(response), 0);                                            }
                                             }
                                         if (strcmp(message, "/leaveRoom") == 0) {
                                             printf("Function Leave Room!\n");
@@ -284,12 +284,12 @@ int main()
                                             //printf("%d-----------%d\n",location[0], location[1]);
                                             playersRoom = inRoom(i, roomList);
                                             int bWon;
-                                            sprintf(msg, "new_play: ");
+                                            sprintf(response, "new_play: ");
                                             if(roomList[playersRoom].Player1 == i){
                                                 roomList[playersRoom].Board[location[0]][location[1]] = 'X';
                                                 bWon = checkWin(location [0],location [1],roomList[playersRoom].Board,'X');
-                                                sprintf(msg+ strlen(msg),"%s",get_params(message));
-                                                send(roomList[playersRoom].Player2, msg,strlen(msg),0 );
+                                                sprintf(response+ strlen(response),"%s",get_params(message));
+                                                send(roomList[playersRoom].Player2, response,strlen(response),0 );
                                                 if(bWon==1){
                                                     send(roomList[roomNumber].Player1, "you_won_game: ", strlen("you_won_game: "),0);
                                                     send(roomList[roomNumber].Player2, "you_lose_game: ", strlen("you_lose_game: "),0);
@@ -305,8 +305,8 @@ int main()
                                             else if(roomList[playersRoom].Player2 == i){
                                                 roomList[playersRoom].Board[location[0]][location[1]] = 'O';
                                                 bWon = checkWin(location [0],location [1],roomList[playersRoom].Board,'O');
-                                                sprintf(msg+ strlen(msg),"%s",get_params(message));
-                                                send(roomList[playersRoom].Player1, msg,strlen(msg),0 );
+                                                sprintf(response+ strlen(response),"%s",get_params(message));
+                                                send(roomList[playersRoom].Player1, response,strlen(response),0 );
                                                 if(bWon==1){
                                                     send(roomList[roomNumber].Player2, "you_won_game: ", strlen("you_won_game: "),0);
                                                     send(roomList[roomNumber].Player1, "you_lose_game: ", strlen("you_lose_game: "),0);
@@ -323,31 +323,31 @@ int main()
                                         if (strstr(message, "/new_message")) {
                                             printf("Function Message\n");
                                             isCommand = 1;
-                                            sprintf(msg,"new_opponent_message: ");
+                                            sprintf(response,"new_opponent_message: ");
                                             playersRoom = inRoom(i, roomList);
                                             if(roomList[playersRoom].Player1 == i){
-                                                sprintf(msg+ strlen(msg),"%s: %s",getPlayerName(list,i) ,get_params(message));
-                                                send(roomList[playersRoom].Player2, msg,strlen(msg),0 );
+                                                sprintf(response+ strlen(response),"%s: %s",getPlayerName(list,i) ,get_params(message));
+                                                send(roomList[playersRoom].Player2, response,strlen(response),0 );
 
                                             }
                                             else if(roomList[playersRoom].Player2 == i){
-                                                sprintf(msg+ strlen(msg),"%s: %s",getPlayerName(list,i),get_params(message));
-                                                send(roomList[playersRoom].Player1, msg,strlen(msg),0 );
+                                                sprintf(response+ strlen(response),"%s: %s",getPlayerName(list,i),get_params(message));
+                                                send(roomList[playersRoom].Player1, response,strlen(response),0 );
                                             }
                                         }
                                         if (strstr(message, "/new_world_message")) {
                                             printf("Function World Message\n");
                                             isCommand = 1;
-                                            sprintf(msg,"world_message %s: %s", getPlayerName(list,i), get_params(message));        
-                                            printf("%s\n",msg);
+                                            sprintf(response,"world_message %s: %s", getPlayerName(list,i), get_params(message));        
+                                            printf("%s\n",response);
 
                                             int other_player;
 
                                             player *current_node = list;
                                             while(1) {
                                                 if(strcmp(current_node->name, "\0") != 0 && current_node->number != i) {
-                                                    printf("send world message for %d: %s\n", current_node->number, msg);
-                                                    send(current_node->number, msg, sizeof(msg), 0);
+                                                    printf("send world message for %d: %s\n", current_node->number, response);
+                                                    send(current_node->number, response, sizeof(response), 0);
                                                 }
                                                 if( current_node->next == NULL) break;
                                                 current_node = current_node->next;
