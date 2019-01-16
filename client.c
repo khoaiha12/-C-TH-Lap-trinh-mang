@@ -76,11 +76,11 @@ gboolean timer_exe(gpointer p)
 		if (strstr(msg, "new_message_success")) {
 			data = get_data(msg);	
 		}
-		if (strstr(msg, "your_turn")) {
-            data = get_data(msg);
-            puts(data);
-            server_respond_choose_room_button(data);
-		}
+		// if (strstr(msg, "your_turn")) {
+        //     data = get_data(msg);
+        //     puts(data);
+        //     server_respond_choose_room_button(data);
+		// }
 		if (strstr(msg, "wait_player")) {	
 			//data = get_data(msg);
             hide_room_select();
@@ -99,6 +99,7 @@ gboolean timer_exe(gpointer p)
 			data = get_data(msg);
             //puts("test_new");
             puts(data);
+            printf("\n");
             set_move(data);	
 		}
         if (strstr(msg, "your_turn")) {

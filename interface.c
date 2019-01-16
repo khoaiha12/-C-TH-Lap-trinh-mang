@@ -580,23 +580,14 @@ void on_room_button_clicked(GtkWidget *widget, gpointer data)
 	// init_play_window();
 }
 void room_full_notice(char* data) {
-	// GtkWidget *dialog_room_full;
-	// dialog_room_full = gtk_message_dialog_new (GTK_WINDOW(window_choose_room),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
-	// 								"Room is full!\n");
-	// gtk_dialog_run (GTK_DIALOG (dialog_room_full));
-	// gtk_widget_destroy(dialog_room_full);
-		GtkWidget *dialog;
-		GtkDialogFlags flags = GTK_DIALOG_MODAL;
-		dialog = gtk_message_dialog_new (GTK_WINDOW(window_choose_room),
-										flags,
-										GTK_MESSAGE_ERROR,
-										GTK_BUTTONS_CLOSE,
-										"%s",
-										"Room full!\n"
-										);
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
-
+	gtk_widget_hide(window_choose_room);
+	GtkWidget *dialog_room_full;
+	dialog_room_full = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
+											"%s", "Room is full!");
+											
+	gtk_dialog_run (GTK_DIALOG (dialog_room_full));
+	gtk_widget_destroy (dialog_room_full);
+	send_choose_room();
 	}
 void on_back_button_clicked()
 {

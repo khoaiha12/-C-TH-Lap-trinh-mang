@@ -1,4 +1,4 @@
-gcc client.c interface.c close.c queue.c testwin.c -o client  `pkg-config --cflags --libs gtk+-3.0`
+gcc client.c interface.c close.c testwin.c -o client  `pkg-config --cflags --libs gtk+-3.0`
 ./client
 
 gcc -o server server.c player.c room.c
