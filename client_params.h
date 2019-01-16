@@ -23,3 +23,4 @@ Room1 room_arr[ROOM_NUM];
 struct Queue *responses;
 int iLocation [2];
 int flag_turn;
+int flag_win;

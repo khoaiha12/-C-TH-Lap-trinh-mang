@@ -21,6 +21,7 @@
 #include "queue.c"
 
 flag_turn=1;
+flag_win=-1;
 char * get_data(char command[]) {
 	int i = 0, j;
 	while (command[i] != ' ') {
@@ -71,24 +72,16 @@ gboolean timer_exe(gpointer p)
 		}
 		if (strstr(msg, "join_room_error")) {
 			puts(msg);
+            init_result_game_window();
             room_full_notice();
 		}
 		if (strstr(msg, "new_message_success")) {
 			data = get_data(msg);	
 		}
-		// if (strstr(msg, "your_turn")) {
-        //     data = get_data(msg);
-        //     puts(data);
-        //     server_respond_choose_room_button(data);
-		// }
 		if (strstr(msg, "wait_player")) {	
-			//data = get_data(msg);
-            hide_room_select();
+            //hide_room_select();
             wait_player_window("wait_key");
 		}
-		// if (strstr(msg, "join_room_error")) {
-		// 	puts(msg);
-		// }
         if (strstr(msg, "refresh_room")) {
             data = get_data(msg);
             //puts(data);
@@ -97,7 +90,6 @@ gboolean timer_exe(gpointer p)
 		}
         if (strstr(msg, "new_play")) {
 			data = get_data(msg);
-            //puts("test_new");
             puts(data);
             printf("\n");
             set_move(data);	
@@ -110,9 +102,16 @@ gboolean timer_exe(gpointer p)
             flag_turn = 0;
             printf("turn: %d\n", flag_turn );
 		}
-		// if (strstr(msg, "new_message_success")) {
-		// 	data = get_data(msg);	
-		// }
+        if (strstr(msg, "you_won_game")) {
+            init_result_game_window();
+            win_game();
+            //flag_win = 1;
+		}
+        if (strstr(msg, "you_lose_game")) {
+            init_result_game_window();
+            lose_game();
+            //flag_win = 0;
+		}
 		
 	}
     return TRUE;

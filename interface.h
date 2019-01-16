@@ -14,10 +14,14 @@ GtkWidget *entry_name;
 GtkWidget *set_button, *choose_room_button;
 GtkWidget *label_name, *button_room[10];
 GtkWidget *window_wait, *fixed_wait, *label_wait;
+GtkWidget *window_result, *fixed_result, *label_result, *ok_button;
+GtkWidget *window_room_full, *fixed_room_full, *label_room_full, *close_button;
 
 static gboolean get_x_loc (GtkWidget *widget, GdkEvent *event, gpointer data);
 
 static gboolean get_y_loc (GtkWidget *widget, GdkEvent *event, gpointer data);
+
+void Show_message(GtkWidget * parent , GtkMessageType type,  char * mms, char * content);
 
 static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data);
 
@@ -51,6 +55,8 @@ void on_room_button_clicked();
 
 void on_back_button_clicked();
 
+void on_cancel_button_clicked();
+
 void on_newgame_button_clicked();
 
 void on_exit_button_clicked();
@@ -60,4 +66,15 @@ void on_set_button_clicked();
 void close_window_main();
 
 void room_full_notice();
+
 void hide_room_select();
+
+void init_result_game_window();
+
+void win_game ();
+
+void lose_game ();
+
+void on_ok_button_clicked();
+
+void on_close_button_clicked();

@@ -21,7 +21,17 @@ enum {
 	LIST_ITEM = 0,
 	N_COLUMNS
 };
-
+void Show_message(GtkWidget * parent , GtkMessageType type,  char * mms, char * content) {
+	GtkWidget *mdialog;
+	mdialog = gtk_message_dialog_new(GTK_WINDOW(parent),
+	                                 GTK_DIALOG_MODAL,
+	                                 type,
+	                                 GTK_BUTTONS_OK,
+	                                 "%s", mms);
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(mdialog), "%s",  content);
+	gtk_dialog_run(GTK_DIALOG(mdialog));
+	gtk_widget_destroy(mdialog);
+}
 
 static gboolean get_x_loc (GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -71,49 +81,24 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 		player_img = gtk_image_new_from_file (cImgLoc);
 		gtk_fixed_put (GTK_FIXED (fixed_main), player_img, iXPos, iYPos);
 		gtk_widget_show (player_img);
-		
-		// bWon = checkWin(iLocation [0],iLocation [1],cBoardLoc,cTurn);
-		// if (bWon == 1)
-		// {
-		// 	printf ("%c Won the game\n", cTurn);
-			
-		// 	dialog_win = gtk_message_dialog_new (NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_INFO,GTK_BUTTONS_CLOSE,
-		// 										"%c has won the game\n", cTurn);
-																	
-		// 	result = gtk_dialog_run (GTK_DIALOG (dialog_win));
-		// 	gtk_widget_destroy (dialog_win);
-
-		// }
-		// else
-		// {		
-		// 	if (cTurn == 'X')
-		// 		cTurn = 'O';
-		// 	else
-		// 		cTurn = 'X';
-		// }
-		// if(result == GTK_RESPONSE_CLOSE){
-		// 	on_newgame_button_clicked();
-		// }
 
 	}
 	else
 	{
 		g_print ("Invalid move!\n");
-			dialog_invalid = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
-												"%s", "An invalid move, try again!");
+			// dialog_invalid = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
+			// 									"%s", "An invalid move, try again!");
 												
-			gtk_dialog_run (GTK_DIALOG (dialog_invalid));
-			gtk_widget_destroy (dialog_invalid);
+			// gtk_dialog_run (GTK_DIALOG (dialog_invalid));
+			// gtk_widget_destroy (dialog_invalid);
+			Show_message(window_main,GTK_MESSAGE_ERROR,"ERROR","An invalid move, try again!");
 	}
 	}
 	else{
-		dialog_turn = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
-												"%s", "Not your turn, wait opponent");
-												
-		gtk_dialog_run (GTK_DIALOG (dialog_turn));
-		gtk_widget_destroy (dialog_turn);
+		Show_message(window_main,GTK_MESSAGE_ERROR,"ERROR","Not your turn, wait opponent");
 	}
-		
+	// if(flag_win == 1) {Show_message(window_main,GTK_MESSAGE_INFO,"Congratulations","You win game!");}
+	// else if(flag_win == 0) {Show_message(window_main,GTK_MESSAGE_INFO,"Opps","You lose game!");}
 	return TRUE;
 }
 
@@ -152,6 +137,8 @@ void set_move(char *data)
 		gtk_widget_show (player_img);
 
 	}
+	// if(flag_win == 1) {Show_message(window_main,GTK_MESSAGE_INFO,"Congratulations","You win game!");}
+	// else if(flag_win == 0) {Show_message(window_main,GTK_MESSAGE_INFO,"Opps","You lose game!");}
 }
 void convert_room_detail(char *data) {
 	int i = 0, j, k = 0;
@@ -224,22 +211,29 @@ void wait_player_window(char *data)
 		g_signal_connect (G_OBJECT (window_wait), "delete_event", G_CALLBACK (delete_event), NULL);
 		g_signal_connect (G_OBJECT (window_wait), "destroy", G_CALLBACK (destroy), NULL);
 		gtk_window_set_title (GTK_WINDOW (window_wait), "Caro made by Tạ team");
-		gtk_window_set_default_size(GTK_WINDOW(window_wait), 600, 400);
+		gtk_window_set_default_size(GTK_WINDOW(window_wait), 600, 300);
 		gtk_window_set_position(GTK_WINDOW(window_wait), GTK_WIN_POS_CENTER);
 		gtk_container_set_border_width (GTK_CONTAINER (window_wait), 15);
 
 		fixed_wait = gtk_fixed_new ();
 		gtk_container_add (GTK_CONTAINER (window_wait), fixed_wait);
 		label_wait = gtk_label_new("");
-		const char *format = "<span font=\"25\" color=\"red\" style=\"italic\">\%s</span>";
+		const char *format = "<span font=\"25\" color=\"blue\" >\%s</span>";
 		char *markup;
 
 		markup = g_markup_printf_escaped (format, "Waiting anothor player");
 		gtk_label_set_markup (GTK_LABEL (label_wait), markup);
 		g_free (markup);
-		gtk_fixed_put (GTK_FIXED (fixed_wait), label_wait, 200, 223);
+		gtk_fixed_put (GTK_FIXED (fixed_wait), label_wait, 140, 100);
+
+		GtkWidget *cancel_button = gtk_button_new_with_label ("Cancel");
+		gtk_widget_set_size_request(cancel_button, 100, 50);
+		gtk_fixed_put (GTK_FIXED (fixed_wait), cancel_button, 250, 200);
+
+		g_signal_connect(G_OBJECT(cancel_button), "clicked", G_CALLBACK(on_cancel_button_clicked), NULL);
 
 		gtk_widget_show(label_wait);
+		gtk_widget_show(cancel_button);
 		gtk_widget_show (fixed_wait);
 		gtk_widget_show (window_wait);
 	}
@@ -298,13 +292,13 @@ void init_play_window(char * data)
 	gtk_widget_set_size_request(send_button, 40, 35);
 	gtk_fixed_put (GTK_FIXED (fixed_main), send_button, 880, 375);
 
-	newgame_button = gtk_button_new_with_label ("New game");
-	gtk_widget_set_size_request(newgame_button, 100, 50);
-	gtk_fixed_put (GTK_FIXED (fixed_main), newgame_button, 650, 475);
+	// newgame_button = gtk_button_new_with_label ("New game");
+	// gtk_widget_set_size_request(newgame_button, 100, 50);
+	// gtk_fixed_put (GTK_FIXED (fixed_main), newgame_button, 650, 475);
 
 	back_button = gtk_button_new_with_label ("Back");
 	gtk_widget_set_size_request(back_button, 100, 50);
-	gtk_fixed_put (GTK_FIXED (fixed_main), back_button, 780, 475);
+	gtk_fixed_put (GTK_FIXED (fixed_main), back_button, 700, 500);
 
 	if(strcmp(data,"wait_key")!=0){
 
@@ -315,13 +309,13 @@ void init_play_window(char * data)
 	markup = g_markup_printf_escaped (format, data);
 	gtk_label_set_markup (GTK_LABEL (label_player), markup);
 	g_free (markup);
-	gtk_fixed_put (GTK_FIXED (fixed_main), label_player, 630, 420);
+	gtk_fixed_put (GTK_FIXED (fixed_main), label_player, 630, 440);
 	gtk_widget_show (label_player);
 
 	}
 
 
-	g_signal_connect(G_OBJECT(newgame_button), "clicked", G_CALLBACK(on_newgame_button_clicked), NULL);
+	//g_signal_connect(G_OBJECT(newgame_button), "clicked", G_CALLBACK(on_newgame_button_clicked), NULL);
 
 	g_signal_connect(G_OBJECT(back_button), "clicked", G_CALLBACK(on_back_button_clicked), NULL);
 
@@ -348,13 +342,13 @@ void init_play_window(char * data)
 		iYPos += 60;
 		iXPos = 0;
 	}
-	
+
 	gtk_widget_show (image_board);
 	gtk_widget_show (fixed_main);
 	gtk_widget_show (view);
 	gtk_widget_show (scrolling);
 	gtk_widget_show (send_button);
-	gtk_widget_show (newgame_button);
+	//gtk_widget_show (newgame_button);
 	gtk_widget_show (back_button);
 	gtk_widget_show (entry_mes);
 	gtk_widget_show (window_main);
@@ -439,7 +433,7 @@ void init_home_window ()
 	gtk_widget_show (image);
 	gtk_widget_show (entry_name);
 	gtk_widget_show (set_button);
-	gtk_widget_show (list);
+	//gtk_widget_show (list);
 	gtk_widget_show (vbox);
 	gtk_widget_show (scrolling);
 	gtk_widget_show (label);
@@ -579,19 +573,18 @@ void on_room_button_clicked(GtkWidget *widget, gpointer data)
 	send_room(buff_temp);
 	// init_play_window();
 }
-void room_full_notice(char* data) {
-	gtk_widget_hide(window_choose_room);
-	GtkWidget *dialog_room_full;
-	dialog_room_full = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
-											"%s", "Room is full!");
-											
-	gtk_dialog_run (GTK_DIALOG (dialog_room_full));
-	gtk_widget_destroy (dialog_room_full);
-	send_choose_room();
-	}
+
 void on_back_button_clicked()
 {
 	gtk_widget_hide(window_main);
+	send_leave_room();
+	gtk_widget_show(window_home);
+}
+
+void on_cancel_button_clicked()
+{
+	gtk_widget_hide(window_choose_room);
+	gtk_widget_hide(window_wait);
 	send_leave_room();
 	gtk_widget_show(window_home);
 }
@@ -612,9 +605,10 @@ void on_newgame_button_clicked()
 
 void on_exit_button_clicked()
 {
+	send_disconnect();
 	gtk_widget_destroy(GTK_WIDGET(window_home));
 	gtk_main_quit();
-	send_disconnect();
+	
 	exit(1);
 }
 
@@ -645,3 +639,88 @@ void server_respond_choose_room_button(char *data)
 	gtk_widget_hide(window_home);
 	init_choose_room_window(data);
 }
+void init_result_game_window()
+{
+	window_result = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	g_signal_connect (G_OBJECT (window_result), "delete_event", G_CALLBACK (delete_event), NULL);
+	g_signal_connect (G_OBJECT (window_result), "destroy", G_CALLBACK (destroy), NULL);
+	gtk_window_set_title (GTK_WINDOW (window_result), "RESULT");
+	gtk_window_set_default_size(GTK_WINDOW(window_result), 350, 200);
+	gtk_window_set_position(GTK_WINDOW(window_result), GTK_WIN_POS_CENTER);
+	//gtk_container_set_border_width (GTK_CONTAINER (window_result), 15);
+
+	fixed_result = gtk_fixed_new ();
+	gtk_container_add (GTK_CONTAINER (window_result), fixed_result);
+	label_result = gtk_label_new("");
+
+	ok_button = gtk_button_new_with_label ("OK");
+	gtk_widget_set_size_request(ok_button, 70, 30);
+	gtk_fixed_put (GTK_FIXED (fixed_result), ok_button, 150, 150);
+
+	g_signal_connect(G_OBJECT(ok_button), "clicked", G_CALLBACK(on_ok_button_clicked), NULL);
+
+}
+void win_game ()
+{
+	const char *format = "<span font=\"15\" color=\"blue\" >\%s</span>";
+	char *markup;
+
+	markup = g_markup_printf_escaped (format, "You win!");
+	gtk_label_set_markup (GTK_LABEL (label_result), markup);
+	g_free (markup);
+	gtk_fixed_put (GTK_FIXED (fixed_result), label_result, 140, 50);
+
+	gtk_widget_show(label_result);
+	gtk_widget_show(ok_button);
+	gtk_widget_show (fixed_result);
+	gtk_widget_show (window_result);
+}
+void lose_game ()
+{
+	const char *format = "<span font=\"15\" color=\"blue\" >\%s</span>";
+	char *markup;
+
+	markup = g_markup_printf_escaped (format, "You lose!");
+	gtk_label_set_markup (GTK_LABEL (label_result), markup);
+	g_free (markup);
+	gtk_fixed_put (GTK_FIXED (fixed_result), label_result, 140, 50);
+
+	gtk_widget_show(label_result);
+	gtk_widget_show(ok_button);
+	gtk_widget_show (fixed_result);
+	gtk_widget_show (window_result);
+}
+void on_ok_button_clicked()
+{
+	gtk_widget_hide(window_main);
+	gtk_widget_hide(window_result);
+	send_leave_room();
+	gtk_widget_show(window_home);
+}
+void on_close_button_clicked()
+{
+	gtk_widget_hide(window_choose_room);
+	gtk_widget_hide(window_result);
+	send_leave_room();
+	gtk_widget_show(window_home);
+}
+void room_full_notice() 
+{
+	const char *format = "<span font=\"15\" color=\"blue\" >\%s</span>";
+	char *markup;
+
+	markup = g_markup_printf_escaped (format, "Room is full!");
+	gtk_label_set_markup (GTK_LABEL (label_result), markup);
+	g_free (markup);
+	gtk_fixed_put (GTK_FIXED (fixed_result), label_result, 125, 50);
+
+	GtkWidget *close_button = gtk_button_new_with_label ("OK");
+	gtk_widget_set_size_request(close_button, 70, 30);
+	gtk_fixed_put (GTK_FIXED (fixed_result), close_button, 150, 150);
+	g_signal_connect(G_OBJECT(close_button), "clicked", G_CALLBACK(on_close_button_clicked), NULL);
+
+	gtk_widget_show(label_result);
+	gtk_widget_show(close_button);
+	gtk_widget_show (fixed_result);
+	gtk_widget_show (window_result);
+}	

@@ -288,27 +288,36 @@ int main()
                                             if(roomList[playersRoom].Player1 == i){
                                                 roomList[playersRoom].Board[location[0]][location[1]] = 'X';
                                                 bWon = checkWin(location [0],location [1],roomList[playersRoom].Board,'X');
-                                                if(bWon==1){
-                                                    puts("Player 1 win");
-                                                }
                                                 sprintf(msg+ strlen(msg),"%s",get_params(message));
                                                 send(roomList[playersRoom].Player2, msg,strlen(msg),0 );
+                                                if(bWon==1){
+                                                    send(roomList[roomNumber].Player1, "you_won_game: ", strlen("you_won_game: "),0);
+                                                    send(roomList[roomNumber].Player2, "you_lose_game: ", strlen("you_lose_game: "),0);
+                                                    puts("Player 1 win");
+                                                }
+                                                else{
                                                 roomList[roomNumber].turn = roomList[roomNumber].Player2;
-                                                send(roomList[roomNumber].Player2, "your_turn:", strlen("your_turn"),0);
-                                                send(roomList[roomNumber].Player1, "opponent_turn:", strlen("opponent_turn")+1,0);
+                                                send(roomList[roomNumber].Player2, "your_turn: ", strlen("your_turn"),0);
+                                                send(roomList[roomNumber].Player1, "opponent_turn: ", strlen("opponent_turn")+1,0);
+                                                }
 
                                             }
                                             else if(roomList[playersRoom].Player2 == i){
                                                 roomList[playersRoom].Board[location[0]][location[1]] = 'O';
                                                 bWon = checkWin(location [0],location [1],roomList[playersRoom].Board,'O');
-                                                if(bWon==1){
-                                                    puts("Player 2 win");
-                                                }
                                                 sprintf(msg+ strlen(msg),"%s",get_params(message));
                                                 send(roomList[playersRoom].Player1, msg,strlen(msg),0 );
+                                                if(bWon==1){
+                                                    send(roomList[roomNumber].Player2, "you_won_game: ", strlen("you_won_game: "),0);
+                                                    send(roomList[roomNumber].Player1, "you_lose_game: ", strlen("you_lose_game: "),0);
+                                                    puts("Player 2 win");
+
+                                                }
+                                                else{
                                                 roomList[roomNumber].turn = roomList[roomNumber].Player1;
                                                 send(roomList[roomNumber].Player1, "your_turn: ", strlen("your_turn"),0);
                                                 send(roomList[roomNumber].Player2, "opponent_turn: ", strlen("opponent_turn"),0);
+                                                }
                                             }
                                         }
                                         if(isCommand == 0) {
