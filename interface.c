@@ -39,20 +39,22 @@ static gboolean get_y_loc (GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	int bWon;
+	// int bWon;
 	int x = 0, y = 0;
 	int iXPos = 0;
 	int iYPos = 0;
 	GtkWidget *player_img;
-	GtkWidget *dialog_win, *dialog_invalid;
+	GtkWidget *dialog_turn, *dialog_invalid;
 	GtkResponseType result;
 	char cImgLoc [16] = "./images/";
 	strcat (cImgLoc, &cTurn);
 	strcat (cImgLoc, ".png");
-	
+	if(flag_turn == 1){
 	if (cBoardLoc [iLocation [0]][iLocation [1]] == 'E')
 	{
+		
 		cBoardLoc [iLocation [0]][iLocation [1]] = cTurn;
+		send_play();
 		// thực hiện gửi nhận server chỗ này
 		while (x < iLocation [0])
 		{	
@@ -71,42 +73,86 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 		gtk_widget_show (player_img);
 		
 		// bWon = checkWin(iLocation [0],iLocation [1],cBoardLoc,cTurn);
-		if (bWon == 1)
-		{
-			printf ("%c Won the game\n", cTurn);
+		// if (bWon == 1)
+		// {
+		// 	printf ("%c Won the game\n", cTurn);
 			
-			dialog_win = gtk_message_dialog_new (NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_INFO,GTK_BUTTONS_CLOSE,
-												"%c has won the game\n", cTurn);
+		// 	dialog_win = gtk_message_dialog_new (NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_INFO,GTK_BUTTONS_CLOSE,
+		// 										"%c has won the game\n", cTurn);
 																	
-			result = gtk_dialog_run (GTK_DIALOG (dialog_win));
-			gtk_widget_destroy (dialog_win);
+		// 	result = gtk_dialog_run (GTK_DIALOG (dialog_win));
+		// 	gtk_widget_destroy (dialog_win);
 
-		}
-		else
-		{		
-			if (cTurn == 'X')
-				cTurn = 'O';
-			else
-				cTurn = 'X';
-		}
-		if(result == GTK_RESPONSE_CLOSE){
-			on_newgame_button_clicked();
-		}
+		// }
+		// else
+		// {		
+		// 	if (cTurn == 'X')
+		// 		cTurn = 'O';
+		// 	else
+		// 		cTurn = 'X';
+		// }
+		// if(result == GTK_RESPONSE_CLOSE){
+		// 	on_newgame_button_clicked();
+		// }
 
 	}
 	else
 	{
 		g_print ("Invalid move!\n");
-			dialog_invalid = gtk_message_dialog_new (NULL,GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
-												"%c has mad an invalid move, try again!", cTurn);
+			dialog_invalid = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
+												"%s", "An invalid move, try again!");
 												
 			gtk_dialog_run (GTK_DIALOG (dialog_invalid));
 			gtk_widget_destroy (dialog_invalid);
+	}
+	}
+	else{
+		dialog_turn = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
+												"%s", "Not your turn, wait opponent");
+												
+		gtk_dialog_run (GTK_DIALOG (dialog_turn));
+		gtk_widget_destroy (dialog_turn);
 	}
 		
 	return TRUE;
 }
 
+void set_move(char *data)
+{
+	int x=0, y=0, x2,y2;
+	int iXPos = 0;
+	int iYPos = 0;
+	GtkWidget *player_img;
+	GtkWidget *dialog_win, *dialog_invalid;
+	GtkResponseType result;
+	char cImgLoc [16] = "./images/O.png";
+
+	int temp_data = atoi(data);
+    x2= temp_data%10;
+    y2= (temp_data - x2)/10;
+	
+	if (cBoardLoc [x2][y2] == 'E')
+	{
+		cBoardLoc [x2][y2] = 'O';
+		// thực hiện gửi nhận server chỗ này
+		while (x < x2)
+		{	
+			iXPos += 60;
+			x++;
+		}
+			
+		while (y < y2)
+		{	
+			iYPos += 60;
+			y++;
+		}
+			
+		player_img = gtk_image_new_from_file (cImgLoc);
+		gtk_fixed_put (GTK_FIXED (fixed_main), player_img, iXPos, iYPos);
+		gtk_widget_show (player_img);
+
+	}
+}
 void convert_room_detail(char *data) {
 	int i = 0, j, k = 0;
 	char element[10];
@@ -312,10 +358,7 @@ void init_play_window(char * data)
 	gtk_widget_show (back_button);
 	gtk_widget_show (entry_mes);
 	gtk_widget_show (window_main);
-	
-	gtk_main();
 
-	return;
 }
 
 void init_home_window ()
@@ -403,9 +446,6 @@ void init_home_window ()
 	
 	gtk_widget_show (exit_button);
 	gtk_widget_show (window_home);
-	
-	gtk_main();
-	return;
 	
 }
 

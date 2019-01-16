@@ -13,9 +13,11 @@
 #include "server_params.h"
 #include "player.h"
 #include "room.h"
+#include "testwin.h"
 
 player *list;
 room roomList[MAX_ROOM];
+int location [2];
 
 char * get_params(char command[]) {
 	int i = 0, j;
@@ -153,6 +155,7 @@ int main()
                             if (nrecv != 0)
                                     {
                                         int isCommand = 0, temp, roomNumber;
+                                        int x,y;
                                         message[nrecv] = 0;
                                         printf("%s\n",message);
                                         if(strcmp(message, "/disconnect") == 0) {
@@ -222,7 +225,7 @@ int main()
                                                 sprintf(msg_temp2, "refresh_room: ");
                                                 if(countPlayerInRoom(roomList, roomNumber)== 1){
                                                     puts(msg);
-                                                    send(i, msg, strlen(msg),0);
+                                                    send(i, msg, strlen(msg)+1,0);
                                                 }else
                                                 if(roomList[roomNumber].Player1 == i && roomList[roomNumber].Player2 != 0){
                                                     sprintf(msg_temp1+strlen(msg_temp1), "%s", getPlayerName(list,i));
@@ -236,9 +239,22 @@ int main()
                                                     sprintf(msg_temp1+strlen(msg_temp1), "%s", getPlayerName(list,roomList[roomNumber].Player1));
                                                     sprintf(msg_temp2+strlen(msg_temp2), "%s", getPlayerName(list,i));
                                                     send(i, msg_temp1, strlen(msg_temp1),0);
-                                                    send(roomList[roomNumber].Player1,msg_temp2,strlen(msg_temp2),0);
+                                                    send(roomList[roomNumber].Player1,msg_temp2,strlen(msg_temp2)+1,0);
                                                     puts(msg_temp1);
                                                     puts(msg_temp2);
+                                                }
+                                                if(countPlayerInRoom(roomList, roomNumber)== 2){
+                                                    
+                                                    for (y = 0; y <= 9; y++)
+                                                    {
+                                                        for (x = 0; x <= 9; x++)
+                                                        {
+                                                            roomList[roomNumber].Board[x][y] = 'E';
+                                                        }
+                                                    }
+                                                    roomList[roomNumber].turn = roomList[roomNumber].Player1;
+                                                    send(roomList[roomNumber].Player1, "your_turn: ", strlen("your_turn"),0);
+                                                    send(roomList[roomNumber].Player2, "opponent_turn: ", strlen("opponent_turn"),0);
                                                 }
 
                                             } else {
@@ -260,13 +276,39 @@ int main()
                                                 printf("Can't leave the room!\n");
                                             };
                                         }
-                                        if (strcmp(message, "/play") == 0) {
+                                        if (strstr(message, "/play")) {
                                             printf("Function PlayGame\n");
-                                            recv(i, message, 1024, 0);
-                                            int location = atoi(message);
+                                            int temp_data = atoi(get_params(message));
+                                            location[0]= temp_data%10;
+                                            location[1]= (temp_data - location[0])/10;
+                                            //printf("%d-----------%d\n",location[0], location[1]);
                                             int playersRoom = inRoom(i, roomList);
-                                            if (playersRoom != -1) {
-                                                printf("Player %d of room %d mark in %d\n", i, playersRoom, location);
+                                            int bWon;
+                                            sprintf(msg, "new_play: ");
+                                            if(roomList[playersRoom].Player1 == i){
+                                                roomList[playersRoom].Board[location[0]][location[1]] = 'X';
+                                                bWon = checkWin(location [0],location [1],roomList[playersRoom].Board,'X');
+                                                if(bWon==1){
+                                                    puts("Player 1 win");
+                                                }
+                                                sprintf(msg+ strlen(msg),"%s",get_params(message));
+                                                send(roomList[playersRoom].Player2, msg,strlen(msg),0 );
+                                                roomList[roomNumber].turn = roomList[roomNumber].Player2;
+                                                send(roomList[roomNumber].Player2, "your_turn:", strlen("your_turn"),0);
+                                                send(roomList[roomNumber].Player1, "opponent_turn:", strlen("opponent_turn")+1,0);
+
+                                            }
+                                            else if(roomList[playersRoom].Player2 == i){
+                                                roomList[playersRoom].Board[location[0]][location[1]] = 'O';
+                                                bWon = checkWin(location [0],location [1],roomList[playersRoom].Board,'O');
+                                                if(bWon==1){
+                                                    puts("Player 2 win");
+                                                }
+                                                sprintf(msg+ strlen(msg),"%s",get_params(message));
+                                                send(roomList[playersRoom].Player1, msg,strlen(msg),0 );
+                                                roomList[roomNumber].turn = roomList[roomNumber].Player1;
+                                                send(roomList[roomNumber].Player1, "your_turn: ", strlen("your_turn"),0);
+                                                send(roomList[roomNumber].Player2, "opponent_turn: ", strlen("opponent_turn"),0);
                                             }
                                         }
                                         if(isCommand == 0) {

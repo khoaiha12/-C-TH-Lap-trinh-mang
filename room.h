@@ -7,6 +7,7 @@ typedef struct Room {
     int Player2;
     int inGame;
     int turn;
+    char Board[10][10];
 } room;
 
 int enterRoom(int player, room roomList[], int roomNumber);
