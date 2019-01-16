@@ -191,6 +191,15 @@ void set_message (char *entry_text)
 
 void hide_room_select() {
 	gtk_widget_hide(window_choose_room);
+	int x,y;
+	for (y = 0; y <= 9; y++)
+	{
+		for (x = 0; x <= 9; x++)
+		{
+			cBoardLoc [x][y] = 'E';
+		}
+	}
+
 }
 void wait_player_window(char *data)
 {
