@@ -27,7 +27,7 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data);
 
 void set_move(char *data);
 
-void set_message (GtkWidget *w,gpointer data);
+void set_message (char *entry_text);
 
 void convert_room_detail(char *data);
 
@@ -48,6 +48,8 @@ void remove_item(GtkWidget *widget, gpointer selection);
 void remove_all(GtkWidget *widget, gpointer selection);
 
 void init_list(GtkWidget *tlist);
+
+void on_button_send_clicked(GtkWidget *w,gpointer data);
 
 void on_choose_room_button_clicked();
 

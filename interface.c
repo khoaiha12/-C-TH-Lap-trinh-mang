@@ -86,11 +86,6 @@ static gboolean make_move (GtkWidget *widget, GdkEvent *event, gpointer data)
 	else
 	{
 		g_print ("Invalid move!\n");
-			// dialog_invalid = gtk_message_dialog_new (GTK_WINDOW (window_main),GTK_DIALOG_MODAL,GTK_MESSAGE_ERROR,GTK_BUTTONS_CLOSE,
-			// 									"%s", "An invalid move, try again!");
-												
-			// gtk_dialog_run (GTK_DIALOG (dialog_invalid));
-			// gtk_widget_destroy (dialog_invalid);
 			Show_message(window_main,GTK_MESSAGE_ERROR,"ERROR","An invalid move, try again!");
 	}
 	}
@@ -137,8 +132,6 @@ void set_move(char *data)
 		gtk_widget_show (player_img);
 
 	}
-	// if(flag_win == 1) {Show_message(window_main,GTK_MESSAGE_INFO,"Congratulations","You win game!");}
-	// else if(flag_win == 0) {Show_message(window_main,GTK_MESSAGE_INFO,"Opps","You lose game!");}
 }
 void convert_room_detail(char *data) {
 	int i = 0, j, k = 0;
@@ -161,12 +154,10 @@ void convert_room_detail(char *data) {
 	}
 }
 
-void set_message (GtkWidget *w,gpointer data) 
+void set_message (char *entry_text) 
 {
-	gchar *entry_text, *view_text;
+	gchar *view_text;
 	char text[1000];
-
-	entry_text = gtk_entry_get_text(GTK_ENTRY(entry_mes));
 
 	GtkTextBuffer *buffer;
     GtkTextIter start, end,iter;
@@ -319,9 +310,9 @@ void init_play_window(char * data)
 
 	g_signal_connect(G_OBJECT(back_button), "clicked", G_CALLBACK(on_back_button_clicked), NULL);
 
-	g_signal_connect(G_OBJECT(entry_mes), "activate", G_CALLBACK(set_message), NULL);
+	g_signal_connect(G_OBJECT(entry_mes), "activate", G_CALLBACK(on_button_send_clicked), NULL);
 
-	g_signal_connect(G_OBJECT(send_button), "clicked", G_CALLBACK(set_message),NULL);
+	g_signal_connect(G_OBJECT(send_button), "clicked", G_CALLBACK(on_button_send_clicked),NULL);
 
 
 	for (y = 0; y <= 9; y++)
@@ -560,6 +551,45 @@ void init_list(GtkWidget *tlist) {
   g_object_unref(store);
 }
 
+void on_button_send_clicked(GtkWidget *w,gpointer data)
+{
+	gchar *entry_text, *view_text;
+	char text[10000];
+	entry_text = gtk_entry_get_text(GTK_ENTRY(entry_mes));
+	if(strcmp(entry_text,"")!=0)
+	{
+		send_msg(entry_text);
+		GtkTextBuffer *buffer;
+		GtkTextIter start, end,iter;
+
+		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(GTK_TEXT_VIEW(view)));
+		gtk_text_buffer_get_iter_at_offset(buffer, &iter, 0);
+
+		gtk_text_buffer_insert(buffer, &iter, "", -1);
+		gtk_text_buffer_get_bounds (buffer, &start, &end);
+		view_text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+
+		if(strcmp(view_text,"")!=0)
+		{
+			strcpy(text, view_text);
+			strcat(text, "\n");
+			strcat(text, "You: ");
+			strcat(text, entry_text);
+		}
+		else
+		{
+			strcpy(text,"You: ");
+			strcat(text,entry_text);		
+		}
+
+		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+		if (buffer == NULL)
+			buffer = gtk_text_buffer_new(NULL);
+		gtk_text_buffer_set_text(buffer, text, -1);
+		gtk_text_view_set_buffer(GTK_TEXT_VIEW(view), buffer);
+		gtk_entry_set_text(GTK_ENTRY(entry_mes),"");
+	}
+}
 void on_choose_room_button_clicked()
 {
 	send_choose_room();

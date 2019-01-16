@@ -28,3 +28,9 @@ void send_choose_room()
 {
     send(clientSocket, "/chooseRoom", strlen("/chooseRoom"), 0);
 }
+void send_msg(char *send_buffer)
+{
+    char msg_cmd[LENGTH_MSG];
+	sprintf(msg_cmd, "/new_message %s", send_buffer);
+    send(clientSocket, msg_cmd, strlen(msg_cmd)+1, 0);
+}

@@ -66,17 +66,15 @@ gboolean timer_exe(gpointer p)
             puts(data);
             server_respond_choose_room_button(data);
 		}
-		if (strstr(msg, "join_room_success")) {	
-			data = get_data(msg);
-            // enter_room();
-		}
 		if (strstr(msg, "join_room_error")) {
 			puts(msg);
             init_result_game_window();
             room_full_notice();
 		}
-		if (strstr(msg, "new_message_success")) {
-			data = get_data(msg);	
+		if (strstr(msg, "new_opponent_message")) {
+			data = get_data(msg);
+            set_message(data);
+
 		}
 		if (strstr(msg, "wait_player")) {	
             //hide_room_select();

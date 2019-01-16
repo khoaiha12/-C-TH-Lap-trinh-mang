@@ -154,7 +154,7 @@ int main()
                             else
                             if (nrecv != 0)
                                     {
-                                        int isCommand = 0, temp, roomNumber;
+                                        int isCommand = 0, temp, roomNumber, playersRoom;
                                         int x,y;
                                         message[nrecv] = 0;
                                         printf("%s\n",message);
@@ -282,7 +282,7 @@ int main()
                                             location[0]= temp_data%10;
                                             location[1]= (temp_data - location[0])/10;
                                             //printf("%d-----------%d\n",location[0], location[1]);
-                                            int playersRoom = inRoom(i, roomList);
+                                            playersRoom = inRoom(i, roomList);
                                             int bWon;
                                             sprintf(msg, "new_play: ");
                                             if(roomList[playersRoom].Player1 == i){
@@ -318,6 +318,21 @@ int main()
                                                 send(roomList[roomNumber].Player1, "your_turn: ", strlen("your_turn"),0);
                                                 send(roomList[roomNumber].Player2, "opponent_turn: ", strlen("opponent_turn"),0);
                                                 }
+                                            }
+                                        }
+                                        if (strstr(message, "/new_message")) {
+                                            printf("Function Message\n");
+                                            isCommand = 1;
+                                            sprintf(msg,"new_opponent_message: ");
+                                            playersRoom = inRoom(i, roomList);
+                                            if(roomList[playersRoom].Player1 == i){
+                                                sprintf(msg+ strlen(msg),"%s: %s",getPlayerName(list,i) ,get_params(message));
+                                                send(roomList[playersRoom].Player2, msg,strlen(msg),0 );
+
+                                            }
+                                            else if(roomList[playersRoom].Player2 == i){
+                                                sprintf(msg+ strlen(msg),"%s: %s",getPlayerName(list,i),get_params(message));
+                                                send(roomList[playersRoom].Player1, msg,strlen(msg),0 );
                                             }
                                         }
                                         if(isCommand == 0) {
