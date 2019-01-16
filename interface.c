@@ -188,6 +188,40 @@ void set_message (char *entry_text)
 	gtk_entry_set_text(GTK_ENTRY(entry_mes),"");
 
 }
+void set_world_message (char *entry_text) 
+{
+	gchar *view_text;
+	char text[1000];
+
+	GtkTextBuffer *buffer;
+    GtkTextIter start, end,iter;
+
+    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(GTK_TEXT_VIEW(world_message_view)));
+    gtk_text_buffer_get_iter_at_offset(buffer, &iter, 0);
+
+    gtk_text_buffer_insert(buffer, &iter, "", -1);
+    gtk_text_buffer_get_bounds (buffer, &start, &end);
+    view_text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+
+	if(strcmp(view_text,"")!=0)
+	{
+		strcpy(text, view_text);
+		strcat(text, "\n");
+		strcat(text, entry_text);
+	}
+	else
+	{
+		strcpy(text,entry_text);		
+	}
+
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(world_message_view));
+	if (buffer == NULL)
+		buffer = gtk_text_buffer_new(NULL);
+	gtk_text_buffer_set_text(buffer, text, -1);
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(world_message_view), buffer);
+	gtk_entry_set_text(GTK_ENTRY(world_entry_message),"");
+
+}
 
 void hide_room_select() {
 	gtk_widget_hide(window_choose_room);
@@ -406,12 +440,35 @@ void init_home_window ()
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolling),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_fixed_put (GTK_FIXED (fixed_home), scrolling, 760, 80);
 
+	// wprld message
+	world_message_view = gtk_text_view_new();
+  	gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW(world_message_view), GTK_WRAP_WORD);
+	gtk_text_view_set_editable (GTK_TEXT_VIEW(world_message_view), FALSE);
+	gtk_text_view_set_cursor_visible (GTK_TEXT_VIEW(world_message_view), FALSE);
+	gtk_text_view_set_pixels_above_lines (GTK_TEXT_VIEW(world_message_view), 3);
+	gtk_text_view_set_pixels_below_lines (GTK_TEXT_VIEW(world_message_view), 3);
+	
 
-  	init_list(list);
-  	add_to_list(list, "Bzozo");
-  	add_to_list(list, "Cún");
-  	add_to_list(list, "Uchiha");
-  	add_to_list(list, "hihi");
+	world_msg_scrolling = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(world_msg_scrolling), world_message_view);
+	gtk_widget_set_size_request(world_msg_scrolling, 300, 350);
+	//gtk_scrolled_window_set_placement (GTK_SCROLLED_WINDOW (scrolling), GTK_CORNER_BOTTOM_LEFT);
+	//gtk_scrolled_window_set_max_content_width (GTK_SCROLLED_WINDOW (scrolling), 50);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolling),GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_fixed_put (GTK_FIXED (fixed_home), world_msg_scrolling, 650, 80);
+	
+
+	world_entry_message = gtk_entry_new ();
+    gtk_entry_set_max_length (GTK_ENTRY (world_entry_message), 150);
+	gtk_entry_set_placeholder_text (GTK_ENTRY (world_entry_message), "Type your message ...");
+	gtk_widget_set_size_request(world_entry_message, 250, 35);
+	gtk_fixed_put (GTK_FIXED (fixed_home), world_entry_message, 650, 450);
+	
+	send_world_message_button = gtk_button_new_with_label ("Send");
+	gtk_widget_set_size_request(send_world_message_button, 40, 35);
+	gtk_fixed_put (GTK_FIXED (fixed_home), send_world_message_button, 910, 450);
+
+	// world msg .
 
   	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
 
@@ -423,19 +480,22 @@ void init_home_window ()
 	gtk_widget_set_size_request(choose_room_button, 100, 41);
 	gtk_fixed_put (GTK_FIXED (fixed_home), choose_room_button, 480, 210);
 
+
 	g_signal_connect (G_OBJECT(choose_room_button), "clicked", G_CALLBACK(on_choose_room_button_clicked), NULL);
 
 	g_signal_connect (G_OBJECT(exit_button), "clicked", G_CALLBACK(on_exit_button_clicked), NULL);
 
 	g_signal_connect(G_OBJECT(set_button), "clicked", G_CALLBACK(on_set_button_clicked), NULL);
+	
+	g_signal_connect(G_OBJECT(send_world_message_button), "clicked", G_CALLBACK(on_world_button_send_clicked), NULL);
+
 
 	gtk_widget_show (fixed_home);
 	gtk_widget_show (image);
 	gtk_widget_show (entry_name);
 	gtk_widget_show (set_button);
-	//gtk_widget_show (list);
 	gtk_widget_show (vbox);
-	gtk_widget_show (scrolling);
+	// gtk_widget_show (scrolling);
 	gtk_widget_show (label);
 	
 	gtk_widget_show (exit_button);
@@ -599,6 +659,45 @@ void on_button_send_clicked(GtkWidget *w,gpointer data)
 		gtk_entry_set_text(GTK_ENTRY(entry_mes),"");
 	}
 }
+void on_world_button_send_clicked(GtkWidget *w,gpointer data)
+{
+	gchar *entry_text, *view_text;
+	char text[10000];
+	entry_text = gtk_entry_get_text(GTK_ENTRY(world_entry_message));
+	if(strcmp(entry_text,"")!=0)
+	{
+		send_world_message(entry_text);
+		GtkTextBuffer *buffer;
+		GtkTextIter start, end,iter;
+
+		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(GTK_TEXT_VIEW(world_message_view)));
+		gtk_text_buffer_get_iter_at_offset(buffer, &iter, 0);
+
+		gtk_text_buffer_insert(buffer, &iter, "", -1);
+		gtk_text_buffer_get_bounds (buffer, &start, &end);
+		view_text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+
+		if(strcmp(view_text,"")!=0)
+		{
+			strcpy(text, view_text);
+			strcat(text, "\n");
+			strcat(text, "You: ");
+			strcat(text, entry_text);
+		}
+		else
+		{
+			strcpy(text,"You: ");
+			strcat(text,entry_text);		
+		}
+
+		buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(world_message_view));
+		if (buffer == NULL)
+			buffer = gtk_text_buffer_new(NULL);
+		gtk_text_buffer_set_text(buffer, text, -1);
+		gtk_text_view_set_buffer(GTK_TEXT_VIEW(world_message_view), buffer);
+		gtk_entry_set_text(GTK_ENTRY(world_entry_message),"");
+	}
+}
 void on_choose_room_button_clicked()
 {
 	send_choose_room();
@@ -669,6 +768,11 @@ void on_set_button_clicked()
 
 	gtk_widget_show(label_name);
 	gtk_widget_show (choose_room_button);
+	gtk_widget_show (world_message_view);
+	gtk_widget_show (world_msg_scrolling);
+	gtk_widget_show (send_world_message_button);
+	gtk_widget_show (world_entry_message);
+
 
 }
 

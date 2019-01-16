@@ -34,3 +34,10 @@ void send_msg(char *send_buffer)
 	sprintf(msg_cmd, "/new_message %s", send_buffer);
     send(clientSocket, msg_cmd, strlen(msg_cmd)+1, 0);
 }
+
+void send_world_message(char *message) {
+    char msg_cmd[LENGTH_MSG];
+	sprintf(msg_cmd, "/new_world_message %s", message);
+    send(clientSocket, msg_cmd, strlen(msg_cmd)+1, 0);
+
+}

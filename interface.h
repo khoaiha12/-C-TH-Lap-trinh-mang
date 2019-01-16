@@ -10,6 +10,10 @@ GtkWidget *table;
 GtkWidget *eventbox_main[10][10];
 GtkWidget *view;
 GtkWidget *entry_mes;
+GtkWidget *world_message_view;
+GtkWidget *world_entry_message;
+GtkWidget *send_world_message_button;
+GtkWidget *world_msg_scrolling;
 GtkWidget *entry_name;
 GtkWidget *set_button, *choose_room_button;
 GtkWidget *label_name, *button_room[10];
@@ -80,3 +84,7 @@ void lose_game ();
 void on_ok_button_clicked();
 
 void on_close_button_clicked();
+
+void on_world_button_send_clicked(GtkWidget *w,gpointer data);
+
+void set_world_message (char *entry_text);

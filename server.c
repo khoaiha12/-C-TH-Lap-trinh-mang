@@ -335,6 +335,25 @@ int main()
                                                 send(roomList[playersRoom].Player1, msg,strlen(msg),0 );
                                             }
                                         }
+                                        if (strstr(message, "/new_world_message")) {
+                                            printf("Function World Message\n");
+                                            isCommand = 1;
+                                            sprintf(msg,"world_message %s: %s", getPlayerName(list,i), get_params(message));        
+                                            printf("%s\n",msg);
+
+                                            int other_player;
+
+                                            player *current_node = list;
+                                            while(1) {
+                                                if(strcmp(current_node->name, "\0") != 0 && current_node->number != i) {
+                                                    printf("send world message for %d: %s\n", current_node->number, msg);
+                                                    send(current_node->number, msg, sizeof(msg), 0);
+                                                }
+                                                if( current_node->next == NULL) break;
+                                                current_node = current_node->next;
+                                            }
+
+                                        }
                                         if(isCommand == 0) {
                                             printf("Client:  %s\n", message);
                                             send(i,message,strlen(message),0);

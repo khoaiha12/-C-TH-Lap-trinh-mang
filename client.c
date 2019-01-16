@@ -60,6 +60,10 @@ gboolean timer_exe(gpointer p)
 	struct QNode * response = deQueue(responses);
     if (response != NULL) {
 		strcpy(msg, response->key);
+        if(strstr(msg, "world_message")) {
+            data = get_data(msg);
+            set_world_message(data);
+        }
         if (strstr(msg, "room_list")) {
 			data = get_data(msg);
             printf("%s\n",msg);
