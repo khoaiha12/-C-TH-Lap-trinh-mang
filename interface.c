@@ -753,6 +753,8 @@ void on_exit_button_clicked()
 void on_set_button_clicked()
 {
 	const gchar *send_buffer = gtk_entry_get_text(GTK_ENTRY(entry_name));
+	if(strcmp(send_buffer,"")!=0)
+	{
 	send_name(send_buffer);
 	gtk_widget_hide(set_button);
 	gtk_widget_hide(entry_name);
@@ -773,6 +775,10 @@ void on_set_button_clicked()
 	gtk_widget_show (send_world_message_button);
 	gtk_widget_show (world_entry_message);
 
+	}
+	else{
+		Show_message(window_home,GTK_MESSAGE_ERROR,"ERROR","Invalid name, try again!");
+	}
 
 }
 
