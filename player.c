@@ -2,14 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct player1 {
-    int number;
-    char ip_addr[20];
-    int port;
-    char name[20];
-    struct player *next;
-    struct player *prev;
-}player;
+#include "player.h"
 
 
 void printPlayerList(player *list) {
@@ -23,7 +16,7 @@ void printPlayerList(player *list) {
 
 }
 
-player* addNewPlayer(player *list, char *ip_addr, int port, char *name) {
+player* addNewPlayer(player *list, char *ip_addr, int port, char *name, int number) {
     player *currentNode = (player *)malloc(sizeof(player));
     currentNode = list;
     while (1) {
@@ -37,6 +30,7 @@ player* addNewPlayer(player *list, char *ip_addr, int port, char *name) {
         strcpy(newPl->ip_addr, ip_addr);
         newPl->port = port;
         strcpy(newPl->name, name);
+        newPl->number = number;
         currentNode->next = newPl;
         newPl->prev=currentNode;
         // printf("Addmode");
@@ -47,14 +41,14 @@ player* addNewPlayer(player *list, char *ip_addr, int port, char *name) {
 
 }
 
-void setPlayerName(player *list, char *ip_addr, int port, char *name, int number) {
+void setPlayerName(player *list, char *name, int i) {
     player *currentNode = list;
     while (1) {
         if(currentNode->next == NULL) break;
         currentNode = currentNode->next;
-        if (strcmp(ip_addr,currentNode->ip_addr) == 0 && port == currentNode->port) {
+        if (i == currentNode->number) {
+            printf("client %d set name: %s\n",i, name);
             strcpy(currentNode->name,name);
-            currentNode->number = number;
         }
     }
 
@@ -93,6 +87,18 @@ char* playerInfo(player* list, int index) {
     bzero(tmp, sizeof(tmp));
     // printf("Info: %s\n", info);
     return info;
+}
+
+char *getPlayerName(player* list, int number){
+    player *currentNode = list;
+    while (1) {
+        if(currentNode->next == NULL) break;
+        currentNode = currentNode->next;
+        if (currentNode->number == number) {
+            return currentNode->name;
+        }
+    }
+    return "#";
 }
 player* playerDisconnect(player *list, int number) {
     player *currentNode = list;

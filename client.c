@@ -1,60 +1,185 @@
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <signal.h>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <netdb.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <gtk/gtk.h>
 
-#define PORT 4444
+#include "client_params.h"
+#include "interface.h"
+#include "request.c"
+#include "queue.c"
 
-int main() {
-    int clientSocket, ret;
-    struct sockaddr_in serverAddr;
-    char buffer[1024];
+flag_turn=1;
+flag_win=-1;
+char * get_data(char command[]) {
+	int i = 0, j;
+	while (command[i] != ' ') {
+		i++;
+	}
+	i++;
 
-    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (clientSocket < 0) {
-        printf("[-]Error in connection.\n");
-        exit(1);
+	char * data = malloc(LENGTH_MSG);
+	for (j = 0; i+j < strlen(command); j++) {
+		data[j] = command[i+j];
+	}
+	data[j] = '\0';
+	return data;
+}
+
+void recv_msg() {
+	char *receive_message = malloc(LENGTH_MSG);
+	memset(receive_message, 0, strlen(receive_message)+1);
+	int receive = recv(clientSocket, receive_message, LENGTH_MSG, 0);
+	
+	if (receive > 0) {
+		receive_message[receive] = '\0';
+		puts(receive_message);
+		enQueue(responses, receive_message);
+        //puts(receive_message);
+	} else if (receive == 0) {
+		// break;
+	} else { 
+		// -1 
+	}
+}
+
+gboolean timer_exe(gpointer p)
+{
+    char msg[1024], *data;
+	struct QNode * response = deQueue(responses);
+    if (response != NULL) {
+		strcpy(msg, response->key);
+        if(strstr(msg, "world_message")) {
+            data = get_data(msg);
+            set_world_message(data);
+        }
+        if (strstr(msg, "room_list")) {
+			data = get_data(msg);
+            printf("%s\n",msg);
+            puts(data);
+            server_respond_choose_room_button(data);
+		}
+		if (strstr(msg, "join_room_error")) {
+			puts(msg);
+            init_result_game_window();
+            room_full_notice();
+		}
+		if (strstr(msg, "new_opponent_message")) {
+			data = get_data(msg);
+            set_message(data);
+
+		}
+		if (strstr(msg, "wait_player")) {	
+            //hide_room_select();
+            wait_player_window("wait_key");
+		}
+        if (strstr(msg, "refresh_room")) {
+            data = get_data(msg);
+            //puts(data);
+            hide_room_select();
+            init_play_window(data);
+		}
+        if (strstr(msg, "new_play")) {
+			data = get_data(msg);
+            puts(data);
+            printf("\n");
+            set_move(data);	
+		}
+        if (strstr(msg, "your_turn")) {
+            flag_turn = 1;
+            printf("turn: %d\n", flag_turn );
+		}
+        if (strstr(msg, "opponent_turn")) {
+            flag_turn = 0;
+            printf("turn: %d\n", flag_turn );
+		}
+        if (strstr(msg, "you_won_game")) {
+            init_result_game_window();
+            win_game();
+            //flag_win = 1;
+		}
+        if (strstr(msg, "you_lose_game")) {
+            init_result_game_window();
+            lose_game();
+            //flag_win = 0;
+		}
+		
+	}
+    return TRUE;
+}
+
+
+int main (int argc, char *argv[])
+{
+    responses = createQueue(); 
+
+	if (!g_thread_supported ()){ g_thread_init(NULL); }
+	// initialize GDK thread support
+	gdk_threads_init();
+	gdk_threads_enter();
+	g_timeout_add(100, (GSourceFunc)timer_exe, NULL);
+
+
+
+	gtk_init (&argc, &argv);
+
+
+    clientSocket = socket(PF_INET,SOCK_STREAM,0);
+
+    if (clientSocket == -1)
+    {
+        perror("CREATE_SOCKET");
+        exit(0); // Thoat 
     }
 
-    printf("[+]Client Socket is created!\n");
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET; // Address family
+    serverAddress.sin_port = htons(5000); // Port
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    // Neu muon dung trong mang phai thay bang  
+    // serverAddress.sin_addr.s_addr = inet_addr(address);
+    // Trong do, address : la ip may hien tai trong mang
 
-    memset(&serverAddr, '\0', sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT);
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); //server address
+
+    socklen_t len = sizeof (struct sockaddr_in);
+
+    int check = connect(clientSocket,(struct sockaddr*)&serverAddress,len);
+    if (check == -1)
+    {
+        perror("CONNECT");
+        exit(0);
+    }  
+
+    // Signal driven I/O mode and NONBlOCK mode so that recv will not block
+    if (fcntl(clientSocket, F_SETFL, O_NONBLOCK | O_ASYNC))
+        printf("Error in setting socket to async, nonblock mode");
+
+    signal(SIGIO, recv_msg); // assign SIGIO to the handler
+    // set this process to be the process owner for SIGIO signal
     
-    ret = connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+    if (fcntl(clientSocket, F_SETOWN, getpid()) < 0)
+        printf("Error in setting own to socket");
+    char message[100];
+    strcpy(message, "/confirm_connection");
+    send(clientSocket, message, strlen(message)+1, 0);
 
-    if (ret < 0) {
-        printf("[-]Error in connection.\n");
-        exit(1);
-    }
-    printf("[+]Connected to Server");
+    init_home_window();
 
-    while(1) {
-        printf("Client: \t");
-        scanf("%s",&buffer[0]);
-        printf("Send buff: %s, lenght: %ld\n", buffer, strlen(buffer));
-        send(clientSocket, buffer, strlen(buffer)+1, 0);
 
-        if (strcmp(buffer, ":disconnect") == 0) {
-            printf("[-]Disconnect from server!\n");
-            bzero(buffer, sizeof(buffer));
-            exit(1);
-        }
 
-        if (strcmp(buffer, ":list") == 0) {
-            while(recv(clientSocket, buffer, 1024, 0) > 0) {
-                buffer[strlen(buffer)-1] = '\0';
-                printf("Server: \t%s\n", buffer);
-                bzero(buffer, sizeof(buffer));
-            }
-        }
-    }
-
-    return 0;
+	gtk_main();
+    gdk_threads_leave();
+	close(clientSocket);
+	return 0;		
 }
